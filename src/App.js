@@ -6,7 +6,11 @@ function ProgressBar({ percent }) {
     <div className="container">
       <div
         className="bar"
-        style={{ transform: `translateX(${percent - 100}%)` }}
+        role="progressbar"
+        aria-valuenow={percent}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        style={{ "--progress": `${percent}%` }}
       >
         {percent}%
       </div>
@@ -21,19 +25,22 @@ export function ProgessBarMain() {
   const [isStarted, setIsStarted] = useState(0);
   useEffect(() => {
     if (status === 1 && isStarted == 1) {
-      intervalId = setInterval(() => {
-        if (percent < 100) {
-          setPercent((prev) => prev + 1);
-        } else {
-          clearInterval(intervalId);
-        }
+      intervalId.current = setInterval(() => {
+        setPercent((prev) => {
+          if (prev < 100) {
+            return prev + 20;
+          } else {
+            clearInterval(intervalId.current);
+            return prev;
+          }
+        });
       }, 500);
     }
 
     return () => {
-      clearInterval(intervalId);
+      clearInterval(intervalId.current);
     };
-  }, [status, isStarted, percent]);
+  }, [status, isStarted]);
 
   function handleStart() {
     setStatus(1);
@@ -69,11 +76,13 @@ export function ProgessBarMain() {
 
 export default function App() {
   return (
-    <div className="App">
-      <ProgessBarMain key={1} />
-      <ProgessBarMain key={2} />
-      <ProgessBarMain key={3} />
-      <ProgessBarMain key={4} />
+    <div
+      className="App"
+      style={{ display: "flex", flexDirection: "column", gap: "2px" }}
+    >
+      {[1, 2, 3, 4].map((i) => {
+        return <ProgessBarMain key={i} />;
+      })}
     </div>
   );
 }
