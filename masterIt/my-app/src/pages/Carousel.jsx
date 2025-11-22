@@ -1,67 +1,86 @@
 import { useState, useEffect, useRef } from "react";
 
-const slides = [
-  { id: 1, color: "#ff6b6b", title: "Slide 1" },
-  { id: 2, color: "#6bc1ff", title: "Slide 2" },
-  { id: 3, color: "#6bff95", title: "Slide 3" },
-];
+function ProductCard({ product }) {
+  return (
+    <div className="product-card">
+      <div className="product-image">
+        <img src={product.image} alt={product.title} />
+      </div>
+      <div className="product-body">
+        <div className="product-title" title={product.title}>
+          {product.title}
+        </div>
+        <div className="product-price">₹{product.price.toFixed(2)}</div>
+        <div className="product-rating">⭐ {product.rating?.rate} ({product.rating?.count})</div>
+      </div>
+    </div>
+  );
+}
 
 export default function Carousel() {
+  const [products, setProducts] = useState([]);
   const [index, setIndex] = useState(0);
   const timerRef = useRef(null);
 
   useEffect(() => {
-    timerRef.current = setInterval(() => {
-      setIndex((i) => (i + 1) % slides.length);
-    }, 3000);
-    return () => clearInterval(timerRef.current);
+    let mounted = true;
+    fetch("https://fakestoreapi.com/products")
+      .then((r) => r.json())
+      .then((data) => {
+        if (!mounted) return;
+        // limit to first 8 products
+        setProducts(data.slice(0, 8));
+      })
+      .catch(() => {
+        if (!mounted) return;
+        setProducts([]);
+      });
+    return () => {
+      mounted = false;
+    };
   }, []);
 
+  useEffect(() => {
+    if (products.length === 0) return;
+    timerRef.current = setInterval(() => {
+      setIndex((i) => (i + 1) % products.length);
+    }, 4000);
+    return () => clearInterval(timerRef.current);
+  }, [products]);
+
   function prev() {
-    setIndex((i) => (i - 1 + slides.length) % slides.length);
+    if (products.length === 0) return;
+    setIndex((i) => (i - 1 + products.length) % products.length);
   }
 
   function next() {
-    setIndex((i) => (i + 1) % slides.length);
+    if (products.length === 0) return;
+    setIndex((i) => (i + 1) % products.length);
   }
 
   return (
-    <div style={{ padding: 20 }}>
-      <h2>Carousel</h2>
-      <div
-        style={{
-          width: 480,
-          height: 240,
-          position: "relative",
-          overflow: "hidden",
-          borderRadius: 8,
-          boxShadow: "0 6px 16px rgba(0,0,0,0.12)",
-        }}
-      >
-        {slides.map((s, i) => (
-          <div
-            key={s.id}
-            style={{
-              position: "absolute",
-              top: 0,
-              left: `${(i - index) * 100}%`,
-              width: "100%",
-              height: "100%",
-              transition: "left 400ms ease",
-              background: s.color,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "#fff",
-              fontSize: 28,
-            }}
-          >
-            {s.title}
-          </div>
-        ))}
+    <div className="carousel-page">
+      <h2>Trending Products</h2>
+      <div className="carousel-wrapper">
+        <div className="carousel-track" style={{ transform: `translateX(-${index * 100}%)` }}>
+          {products.map((p) => (
+            <div className="slide" key={p.id}>
+              <ProductCard product={p} />
+            </div>
+          ))}
+        </div>
       </div>
-      <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
+      <div className="carousel-controls">
         <button onClick={prev}>Prev</button>
+        <div className="dots">
+          {products.map((_, i) => (
+            <button
+              key={i}
+              className={i === index ? "dot active" : "dot"}
+              onClick={() => setIndex(i)}
+            />
+          ))}
+        </div>
         <button onClick={next}>Next</button>
       </div>
     </div>
