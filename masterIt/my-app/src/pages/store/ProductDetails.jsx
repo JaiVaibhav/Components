@@ -10,7 +10,7 @@ export default function ProductDetails() {
 
   useEffect(() => {
     let mounted = true;
-    fetch(`https://fakestoreapi.com/products/${id}`)
+    fetch(`https://dummyjson.com/products/${id}`)
       .then((r) => r.json())
       .then((data) => {
         if (!mounted) return;
@@ -27,7 +27,7 @@ export default function ProductDetails() {
   return (
     <div style={{ display: "flex", gap: 20, padding: 12 }}>
       <div style={{ flex: "0 0 320px", height: 380, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <img src={product.image} alt={product.title} style={{ maxHeight: 360, objectFit: "contain" }} />
+        <img src={product.thumbnail || product.images?.[0]} alt={product.title} style={{ maxHeight: 360, objectFit: "contain" }} />
       </div>
       <div style={{ flex: 1 }}>
         <h2>{product.title}</h2>
