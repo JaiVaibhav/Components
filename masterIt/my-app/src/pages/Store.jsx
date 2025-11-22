@@ -21,3 +21,19 @@ export default function Store() {
     </CartProvider>
   );
 }
+
+function Header() {
+  const { items } = useCart();
+  const count = items.reduce((s, it) => s + it.qty, 0);
+  return (
+    <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <h1>Store</h1>
+      <nav>
+        <Link to="/">Home</Link> {" | "}
+        <Link to="/store">Products</Link> {" | "}
+        <Link to="/store/cart">Cart</Link>
+        <span style={{ marginLeft: 8, color: 'var(--muted)', fontWeight: 700 }}>({count})</span>
+      </nav>
+    </header>
+  );
+}
