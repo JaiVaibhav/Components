@@ -28,7 +28,7 @@ export function ProgessBarMain() {
       intervalId.current = setInterval(() => {
         setPercent((prev) => {
           if (prev < 100) {
-            return prev + 20;
+            return prev + 1;
           } else {
             clearInterval(intervalId.current);
             return prev;
