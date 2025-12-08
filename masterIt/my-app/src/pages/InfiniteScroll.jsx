@@ -59,7 +59,43 @@ export default function InfiniteScroll(){
     //    itemLengthref.current = items.length;
     // },[items])
     
-    
+    useEffect(()=>{
+        fetchItems();
+            intersectionObserverRef.current = new IntersectionObserver((entries)=>{
+        if(loading.current || !hasMore.current)
+        {
+            return;
+        }
+        const entry = entries[0];
+        console.log(entry.isIntersecting);
+        if(entry.isIntersecting)
+        {
+            fetchItems();
+        }
+    },{
+        root:sectionRef.current,
+        rootMargin:"0px 0px 100px 0px",
+        threshold:0.2,
+    });
+    },[])
+
+    useEffect(()=>{
+         itemLengthref.current = items.length;
+        const lastItem = lastElementRef.current
+        console.log(lastItem)
+        if(!lastItem)
+        {
+            return;
+        }
+        const observer =intersectionObserverRef.current;
+        observer.observe(lastItem);
+        return ()=>{
+             if(lastItem)
+        {
+            observer.unobserve(lastItem);
+        }
+        }
+    },[items]);
 
 
 
