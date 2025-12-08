@@ -3,9 +3,9 @@ import { useState, useEffect, useRef } from "react";
 
 function ProgressBar({ percent }) {
   return (
-    <div className="container">
+    <div className="progressbar-container">
       <div
-        className="bar"
+        className="progressbar-bar"
         role="progressbar"
         aria-valuenow={percent}
         aria-valuemin={0}

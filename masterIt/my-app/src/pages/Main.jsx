@@ -10,6 +10,7 @@ export default function Main() {
           <Link to="/carousel">Carousel</Link>
           <Link to="/progress">Progress</Link>
           <Link to="/store">Store</Link>
+          <Link to="/infiniteScroll">InfiniteScroll</Link>
         </nav>
       </header>
 

@@ -3,7 +3,7 @@
   text-align: center;
 }
 
-.container {
+.progressbar-container {
   width: 90%;
   height: 30px;
   display: flex;
@@ -13,7 +13,7 @@
   border-radius: 100px;
 }
 
-.bar {
+.progressbar-bar {
   background: teal;
   display: flex;
   height: 100%;
@@ -239,6 +239,108 @@ body{ background:var(--bg); font-family: Inter, ui-sans-serif, system-ui, -apple
   .product-info{ width:100% }
 }
 
+.isContainer{
+  display:flex;
+  flex-wrap: wrap;
+  gap:16px;
+  width:100%;
+  justify-content:center;
+  position:fixed;
+  top:100px;
+  height:calc(100vh - 100px);
+  overflow:scroll
+}
+.isItem{
+  display: flex;
+  flex-direction:column;
+  gap:8px;
+  width:40%;
+  height:600px;
+}
 
+.isheader{
+  position:fixed;
+  background: lightblue;
+  width:100%
+}
 
+.iSContainer{
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  width:100%;
+  gap:16px;
+  padding-top: 100px;
+}
 
+.isitem{
+  display: flex;
+  flex-direction: column;
+  gap:8px;
+  width: 40%;
+}
+.isHeader{
+  position:fixed;
+  background-color: aquamarine;
+  width:100%;
+  height:100px;
+  padding:0;
+  margin:0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.header{
+  padding:0;
+  margin:0;
+  height:100px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #ddd;
+}
+.container-is{
+  display:flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap:16px;
+  width: 100%;
+  height: calc(100vh);
+  overflow: auto;
+}
+.item-is{
+  display: flex;
+  flex-direction: column;
+  gap:8px;
+  width:40%;
+  height:600px;
+  background-color: aliceblue;
+}
+
+.header-is4{
+  width:100%;
+  position:fixed;
+  height:100px;
+}
+
+.container-is4{
+  display:flex;
+  flex-wrap:wrap;
+  width:100%;
+  justify-content:center;
+  position:fixed;
+  top:100px;
+  overflow:scroll;
+  height:calc(100vh - 100px);
+  gap:16px;
+  bottom:100px;
+}
+.item-is4{
+  display:flex;
+  flex-direction: column;
+  width:40%;
+  height:500px;
+  background-color: cadetblue;
+  gap:8px;
+}
