@@ -1,4 +1,5 @@
-import React,{useState, useEffect, useRef} from "react";
+import React,{useState, useEffect, useRef, use, useCallback} from "react";
+import useInfiniteScroll from "../hooks/useInfiniteScroll";
 
 export default function InfiniteScroll(){
     const [items, setItems] = useState([]);
@@ -6,9 +7,10 @@ export default function InfiniteScroll(){
     const loading = useRef(false);
     const hasMore = useRef(true);
     const itemLengthref = useRef(0);
-    const lastElementRef = useRef(null);
-    const intersectionObserverRef= useRef(null);
-    async function fetchItems(){
+    //const lastElementRef = useRef(null);
+    //const intersectionObserverRef= useRef(null);
+    const fetchItems = useCallback(
+    async function (){
         if(loading.current)
         {
             return;
@@ -30,7 +32,15 @@ export default function InfiniteScroll(){
         finally{
             loading.current = false;
         }
-    }
+    },[])
+
+    useEffect(()=>{
+        itemLengthref.current = items.length;
+    },[items])
+
+    useEffect(()=>{
+        fetchItems();
+    },[])
 
     // function handleScroll(){
     //     if(loading.current || !hasMore.current)
@@ -59,52 +69,56 @@ export default function InfiniteScroll(){
     //    itemLengthref.current = items.length;
     // },[items])
     
-    useEffect(()=>{
-        fetchItems();
-            intersectionObserverRef.current = new IntersectionObserver((entries)=>{
-        if(loading.current || !hasMore.current)
-        {
-            return;
-        }
-        const entry = entries[0];
-        console.log(entry.isIntersecting);
-        if(entry.isIntersecting)
-        {
-            fetchItems();
-        }
-    },{
+    // useEffect(()=>{
+    //     fetchItems();
+    //         intersectionObserverRef.current = new IntersectionObserver((entries)=>{
+    //     if(loading.current || !hasMore.current)
+    //     {
+    //         return;
+    //     }
+    //     const entry = entries[0];
+    //     console.log(entry.isIntersecting);
+    //     if(entry.isIntersecting)
+    //     {
+    //         fetchItems();
+    //     }
+    // },{
+    //     root:sectionRef.current,
+    //     rootMargin:"0px 0px 100px 0px",
+    //     threshold:0.2,
+    // });
+    // },[])
+
+    // useEffect(()=>{
+    //      itemLengthref.current = items.length;
+    //     const lastItem = lastElementRef.current
+    //     console.log(lastItem)
+    //     if(!lastItem)
+    //     {
+    //         return;
+    //     }
+    //     const observer =intersectionObserverRef.current;
+    //     observer.observe(lastItem);
+    //     return ()=>{
+    //          if(lastItem)
+    //     {
+    //         observer.unobserve(lastItem);
+    //     }
+    //     }
+    // },[items]);
+
+    const lastItemRef= useInfiniteScroll(fetchItems, hasMore, {
         root:sectionRef.current,
-        rootMargin:"0px 0px 100px 0px",
-        threshold:0.2,
-    });
-    },[])
-
-    useEffect(()=>{
-         itemLengthref.current = items.length;
-        const lastItem = lastElementRef.current
-        console.log(lastItem)
-        if(!lastItem)
-        {
-            return;
-        }
-        const observer =intersectionObserverRef.current;
-        observer.observe(lastItem);
-        return ()=>{
-             if(lastItem)
-        {
-            observer.unobserve(lastItem);
-        }
-        }
-    },[items]);
-
-
+        rootMargin:"0px 0px 200px 0px",
+        threshold:0.2
+    })
 
     return <>
                 <div className="header-is4"><h1>Infinite Scroll</h1></div>
                     <section className="container-is4" ref={sectionRef}>
                     {
                         items.map((item, index)=>{
-                        return <div key={item.id} className="item-is4" ref={index == items.length -1 ? lastElementRef:null} >
+                        return <div key={item.id} className="item-is4" ref={index == items.length -1 ? lastItemRef:null} >
                                     <img src ={item.images[0]} alt={item.title}/>
                                 </div>
                         })
