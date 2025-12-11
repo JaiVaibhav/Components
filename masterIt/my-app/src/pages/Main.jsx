@@ -11,6 +11,7 @@ export default function Main() {
           <Link to="/progress">Progress</Link>
           <Link to="/store">Store</Link>
           <Link to="/infiniteScroll">InfiniteScroll</Link>
+          <Link to="/exercise">Exercise</Link>
         </nav>
       </header>
 

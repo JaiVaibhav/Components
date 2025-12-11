@@ -7,6 +7,7 @@ import Main from "./pages/Main";
 import Carousel from "./pages/Carousel";
 import Store from "./pages/Store";
 import InfiniteScroll from "./pages/InfiniteScroll";
+import {AdminDashboard} from "./exercises/exerciseLatest";
 const rootElement = document.getElementById("root");
 const root = createRoot(rootElement);
 
@@ -19,6 +20,7 @@ root.render(
         <Route path="/progress" element={<App />} />
         <Route path="/store/*" element={<Store/>} />
         <Route path="/infiniteScroll" element={<InfiniteScroll/>}/>
+        <Route path="/exercise" element={<AdminDashboard/>}/>
       </Routes>
     </BrowserRouter>
   // </StrictMode>

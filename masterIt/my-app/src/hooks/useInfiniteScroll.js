@@ -6,7 +6,6 @@ export default function useInfiniteScroll(callback, hasMore, options){
 
     useEffect(()=>{
         const node = lastItemRef.current;
-        console.log(node);
         if(!node || !hasMore.current)
         {
             return;
