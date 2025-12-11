@@ -344,3 +344,16 @@ body{ background:var(--bg); font-family: Inter, ui-sans-serif, system-ui, -apple
   background-color: cadetblue;
   gap:8px;
 }
+
+.booksContainer{
+  display: flex;
+  flex-direction: column;
+  gap:8px;
+}
+.bookDetails{
+  display: flex;
+  justify-content: space-around;
+  height:30px;
+  align-items: center;
+  background:skyblue;
+}

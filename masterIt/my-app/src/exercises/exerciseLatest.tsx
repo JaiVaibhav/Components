@@ -1,511 +1,189 @@
-import React, {
-  useEffect,
-  useMemo,
-  useState,
-  useCallback,
-} from "react";
+import React, { useEffect, useState } from "react";
 
-type User = {
-  id: number;
-  name: string;
-  email: string;
-  company?: { name: string };
-};
+/**
+ * Beginner-level component with clear places to implement:
+ *  - Debounce: when calling fetchBooks on input changes
+ *  - Throttle: when handling rapid button clicks
+ *
+ * IMPORTANT: This component is intentionally naive (no debounce/throttle).
+ * Your task is to implement debounce for the search and throttle for the button.
+ */
 
-type Team = {
-  id: number;
-  name: string;
-  members: number;
-  owner: string;
-};
+export default function SearchStarter() {
+  const [searchText, setSearchText] = useState("");     // controlled input
+  const [books, setBooks] = useState([]);               // fetched results
+  const [loading, setLoading] = useState(false);        // loading indicator
+  const [error, setError] = useState(null);             // error state
 
-type AsyncState<T> = {
-  data: T[];
-  loading: boolean;
-  error: string | null;
-};
+  // A simple log updated on every rapid button click
+  // (This is the place to add throttling)
+  const [actionLog, setActionLog] = useState([]);
 
-const PAGE_SIZE = 5;
-type ChangeEvent = React.ChangeEvent<HTMLInputElement>;
-
-export const AdminDashboard: React.FC = () => {
-  return (
-    <div style={{ padding: 24, fontFamily: "sans-serif" }}>
-      <h1>Admin Dashboard</h1>
-      <p style={{ marginBottom: 24 }}>
-        Users and Teams management. (This file is intentionally a bit messy so
-        you can refactor it with custom hooks.)
-      </p>
-      <div style={{ display: "flex", gap: 24, alignItems: "flex-start" }}>
-        <UsersPanel />
-        <TeamsPanel />
-      </div>
-    </div>
-  );
-};
-
-function useDebouncedSearch(
-  search: string,
-  delay: number = 400
-) {
-  const [debouncedValue, setDebouncedValue] = useState("");
+  // -----------------------------------------
+  // Naive search: this effect calls the API
+  // whenever searchText changes (no debounce).
+  // -----------------------------------------
   useEffect(() => {
-    const handle = setTimeout(() => {
-      setDebouncedValue(search)
-    }, delay);
+    // We only search when query length >= 3
+    if (!searchText || searchText.trim().length < 3) {
+      setBooks([]);
+      setError(null);
+      return;
+    }
 
-    return () => clearTimeout(handle);
-  }, [search, delay]);
-
-  return debouncedValue;
-}
-
-function useFetchData(url:any, state:any, refreshIndex:any){
-  const [data, setData] = useState(state);
-
-   useEffect(() => {
-    let cancelled = false;
-
-    async function fetchData() {
-      // setData((prev)=>{...prev, loading:true, error:null });
-      setData((prev:any)=>({...prev, loading:true, error:null }))
+    // NOTE: This is the naive implementation that calls the API immediately.
+    // TODO (for you): Replace this effect logic with a debounced version so the
+    // API is called only after the user has stopped typing for N ms.
+    async function fetchBooks() {
+      setLoading(true);
+      setError(null);
       try {
-        // Fake API
-        const res = await fetch(url);
-        if (!res.ok) {
-          throw new Error(`Request failed with status ${res.status}`);
-        }
-        const json: User[] = await res.json();
-
-        if (!cancelled) {
-          setData({
-            data: json,
-            loading: false,
-            error: null,
-          });
-        }
-      } catch (err: unknown) {
-        if (!cancelled) {
-          return{
-            data: [],
-            loading: false,
-            error:
-              err instanceof Error ? err.message : "Unknown error occurred",
-          };
-        }
+        const res = await fetch(
+          `https://openlibrary.org/search.json?q=${encodeURIComponent(
+            searchText
+          )}&fields=title,author_name,first_publish_year`
+        );
+        if (!res.ok) throw new Error("Network response was not ok");
+        const data = await res.json();
+        const list =
+          Array.isArray(data.docs) && data.docs.length > 0
+            ? data.docs.slice(0, 10).map((b) => ({
+                title: b.title,
+                authorName: (b.author_name || []).join(", "),
+                firstPublishYear: b.first_publish_year,
+              }))
+            : [];
+        setBooks(list);
+      } catch (err) {
+        console.error(err);
+        setError("Failed to fetch books");
+        setBooks([]);
+      } finally {
+        setLoading(false);
       }
     }
 
-    fetchData();
+    fetchBooks();
+  }, [searchText]);
 
-    return () => {
-      cancelled = true;
-    };
-  },[refreshIndex, url]);
-  return data;
+  // -----------------------------------------
+  // Naive rapid-action handler (no throttle)
+  //
+  // This runs for every click. Replace this handler
+  // with a throttled version so repeated clicks only
+  // invoke the action at most once per N ms.
+  // -----------------------------------------
+  function handleRapidAction() {
+    const time = new Date().toLocaleTimeString();
+    setActionLog((prev) => [`Clicked @ ${time}`, ...prev].slice(0, 20));
+  }
+
+  // Small helpers for UI
+  function handleInputChange(e) {
+    setSearchText(e.target.value);
+  }
+  function clearSearch() {
+    setSearchText("");
+    setBooks([]);
+    setError(null);
+  }
+  function clearLog() {
+    setActionLog([]);
+  }
+
+  return (
+    <main style={{ fontFamily: "sans-serif", padding: 20, maxWidth: 760 }}>
+      <h2>Search Starter (no debounce/throttle)</h2>
+
+      <section style={{ marginBottom: 18 }}>
+        <label>
+          <strong>Search books (>= 3 chars):</strong>
+          <input
+            value={searchText}
+            onChange={handleInputChange}
+            placeholder="Type book name..."
+            style={{
+              marginLeft: 8,
+              padding: "6px 8px",
+              width: 360,
+              borderRadius: 4,
+              border: "1px solid #ccc",
+            }}
+          />
+        </label>
+        <button onClick={clearSearch} style={{ marginLeft: 8 }}>
+          Clear
+        </button>
+        <div style={{ marginTop: 8 }}>
+          <small style={{ color: "#555" }}>
+            NOTE: API is called immediately on input change (this is naive). Implement
+            debounce here to reduce requests.
+          </small>
+        </div>
+      </section>
+
+      <section style={{ marginBottom: 18 }}>
+        <div style={{ marginBottom: 8 }}>
+          <strong>Results:</strong>
+          {loading && <span style={{ marginLeft: 8 }}>Loading...</span>}
+        </div>
+
+        {error && (
+          <div style={{ color: "crimson", marginBottom: 8 }}>{error}</div>
+        )}
+
+        <div style={{ border: "1px solid #eee", borderRadius: 6 }}>
+          {books.length === 0 ? (
+            <div style={{ padding: 12, color: "#666" }}>
+              No results (type at least 3 characters)
+            </div>
+          ) : (
+            books.map((b, i) => (
+              <div
+                key={i}
+                style={{
+                  padding: 12,
+                  borderBottom: i === books.length - 1 ? "none" : "1px solid #f4f4f4",
+                }}
+              >
+                <div style={{ fontWeight: 600 }}>{b.title}</div>
+                <div style={{ fontSize: 13 }}>{b.authorName}</div>
+                <div style={{ fontSize: 12, color: "#777" }}>{b.firstPublishYear}</div>
+              </div>
+            ))
+          )}
+        </div>
+      </section>
+
+      <section style={{ marginTop: 12 }}>
+        <h4>Rapid action (button)</h4>
+        <div style={{ marginBottom: 8 }}>
+          <button onClick={handleRapidAction}>Rapid Action</button>
+          <button onClick={clearLog} style={{ marginLeft: 8 }}>
+            Clear Log
+          </button>
+        </div>
+        <small style={{ color: "#555", display: "block", marginBottom: 8 }}>
+          NOTE: This handler runs on every click. Implement throttling here so repeated
+          clicks are limited (for example, at most once per 1000ms).
+        </small>
+
+        <div
+          style={{
+            background: "#f8f8f8",
+            padding: 12,
+            borderRadius: 6,
+            whiteSpace: "pre-wrap",
+            minHeight: 48,
+          }}
+        >
+          {actionLog.length === 0 ? (
+            <span style={{ color: "#777" }}>No actions yet</span>
+          ) : (
+            actionLog.map((l, i) => <div key={i}>{l}</div>)
+          )}
+        </div>
+      </section>
+    </main>
+  );
 }
-
-const UsersPanel: React.FC = () => {
-  const [state, setState] = useState<AsyncState<User>>({
-    data: [],
-    loading: false,
-    error: null,
-  });
-
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [page, setPage] = useState(1);
-  const [refreshIndex, setRefreshIndex] = useState(0);
-
-
-  // --- debounced search (duplicated in TeamsPanel) ---
-  
-
-
-const debouncedValue = useDebouncedSearch(search)
-const userData = useFetchData("https://jsonplaceholder.typicode.com/users", state, refreshIndex);
-
-useEffect(()=>{
-setState(userData);
-},[userData])
-    useEffect(()=>{
-      setDebouncedSearch(debouncedValue);
-      setPage(1);
-    }, [debouncedValue])
-
-  // --- data fetching (duplicated in TeamsPanel, but with a different URL/shape) ---
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadUsers() {
-      setState((prev) => ({ ...prev, loading: true, error: null }));
-      try {
-        // Fake API
-        const res = await fetch("https://jsonplaceholder.typicode.com/users");
-        if (!res.ok) {
-          throw new Error(`Request failed with status ${res.status}`);
-        }
-        const json: User[] = await res.json();
-
-        if (!cancelled) {
-          setState({
-            data: json,
-            loading: false,
-            error: null,
-          });
-        }
-      } catch (err: unknown) {
-        if (!cancelled) {
-          setState({
-            data: [],
-            loading: false,
-            error:
-              err instanceof Error ? err.message : "Unknown error occurred",
-          });
-        }
-      }
-    }
-
-    loadUsers();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [refreshIndex]);
-
-  const handleSearchChange = useCallback(
-    (e: ChangeEvent) => {
-      setSearch(e.target.value);
-    },
-    []
-  );
-
-  const handleRefresh = useCallback(() => {
-    setRefreshIndex((i) => i + 1);
-  }, []);
-
-  const filtered = useMemo(() => {
-    const lower = debouncedSearch.toLowerCase();
-    if (!lower) return state.data;
-    return state.data.filter((u) => {
-      return (
-        u.name.toLowerCase().includes(lower) ||
-        u.email.toLowerCase().includes(lower) ||
-        u.company?.name?.toLowerCase().includes(lower)
-      );
-    });
-  }, [state.data, debouncedSearch]);
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const pageSafe = Math.min(page, totalPages);
-
-  const paginated = useMemo(() => {
-    const start = (pageSafe - 1) * PAGE_SIZE;
-    return filtered.slice(start, start + PAGE_SIZE);
-  }, [filtered, pageSafe]);
-
-  const goToPage = useCallback(
-    (nextPage: number) => {
-      setPage((prev) => {
-        if (nextPage < 1) return prev;
-        if (nextPage > totalPages) return prev;
-        return nextPage;
-      });
-    },
-    [totalPages]
-  );
-
-  return (
-    <section
-      style={{
-        border: "1px solid #ccc",
-        borderRadius: 8,
-        padding: 16,
-        width: 420,
-      }}
-    >
-      <header
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginBottom: 12,
-        }}
-      >
-        <h2 style={{ margin: 0 }}>Users</h2>
-        <button onClick={handleRefresh} disabled={state.loading}>
-          {state.loading ? "Refreshing..." : "Refresh"}
-        </button>
-      </header>
-
-      <div style={{ marginBottom: 12 }}>
-        <input
-          type="text"
-          placeholder="Search users by name, email, company"
-          value={search}
-          onChange={handleSearchChange}
-          style={{ width: "100%", padding: 8, boxSizing: "border-box" }}
-        />
-      </div>
-
-      {state.error && (
-        <div style={{ color: "red", marginBottom: 8 }}>Error: {state.error}</div>
-      )}
-
-      <ul style={{ listStyle: "none", padding: 0, margin: 0, minHeight: 120 }}>
-        {state.loading && state.data.length === 0 ? (
-          <li>Loading users...</li>
-        ) : paginated.length === 0 ? (
-          <li>No users found.</li>
-        ) : (
-          paginated.map((user) => (
-            <li
-              key={user.id}
-              style={{
-                padding: "6px 4px",
-                borderBottom: "1px solid #eee",
-              }}
-            >
-              <div style={{ fontWeight: 600 }}>{user.name}</div>
-              <div style={{ fontSize: 12, color: "#555" }}>{user.email}</div>
-              {user.company?.name && (
-                <div style={{ fontSize: 12, color: "#777" }}>
-                  Company: {user.company.name}
-                </div>
-              )}
-            </li>
-          ))
-        )}
-      </ul>
-
-      <Pagination
-        page={pageSafe}
-        totalPages={totalPages}
-        onChange={goToPage}
-      />
-    </section>
-  );
-};
-
-const TeamsPanel: React.FC = () => {
-  const [state, setState] = useState<AsyncState<Team>>({
-    data: [],
-    loading: false,
-    error: null,
-  });
-
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [page, setPage] = useState(1);
-  const [refreshIndex, setRefreshIndex] = useState(0);
-
-  // --- debounced search (same pattern as UsersPanel) ---  
-  const debouncedValue = useDebouncedSearch(search)
-
-  useEffect(()=>{
-      setDebouncedSearch(debouncedValue);
-      setPage(1);
-  },[debouncedValue])
-
-  const teamsData = useFetchData("https://jsonplaceholder.typicode.com/users", state, refreshIndex);
-
-  useEffect(()=>{
-    setState(teamsData);
-  },[teamsData])
-
-  // useEffect(() => {
-  //   const handle = setTimeout(() => {
-  //     setDebouncedSearch(search.trim());
-  //     setPage(1);
-  //   }, 400);
-
-  //   return () => clearTimeout(handle);
-  // }, [search]);
-
-  // --- data fetching (same lifecycle/shape, but different resource) ---
-  // useEffect(() => {
-  //   let cancelled = false;
-
-  //   async function loadTeams() {
-  //     setState((prev) => ({ ...prev, loading: true, error: null }));
-  //     try {
-  //       // Simulated API – pretend this returns teams data
-  //       const res = await fetch("https://jsonplaceholder.typicode.com/users"); // imagine this exists
-  //       if (!res.ok) throw new Error(`Request failed: ${res.status}`);
-  //       const json: Team[] = await res.json();
-
-  //       if (!cancelled) {
-  //         setState({
-  //           data: json,
-  //           loading: false,
-  //           error: null,
-  //         });
-  //       }
-  //     } catch (err: unknown) {
-  //       if (!cancelled) {
-  //         setState({
-  //           data: [],
-  //           loading: false,
-  //           error:
-  //             err instanceof Error ? err.message : "Unknown error occurred",
-  //         });
-  //       }
-  //     }
-  //   }
-
-  //   loadTeams();
-
-  //   return () => {
-  //     cancelled = true;
-  //   };
-  // }, [refreshIndex]);
-
-  const handleSearchChange = useCallback(
-    (e: ChangeEvent) => {
-      setSearch(e.target.value);
-    },
-    []
-  );
-
-  const handleRefresh = useCallback(() => {
-    setRefreshIndex((i) => i + 1);
-  }, []);
-
-  const filtered = useMemo(() => {
-    const lower = debouncedSearch.toLowerCase();
-    if (!lower) return state.data;
-    return state.data.filter((t) => {
-      return (
-        t.name.toLowerCase().includes(lower) ||
-        (t.owner || "").toLowerCase().includes(lower)
-      );
-    });
-  }, [state.data, debouncedSearch]);
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const pageSafe = Math.min(page, totalPages);
-
-  const paginated = useMemo(() => {
-    const start = (pageSafe - 1) * PAGE_SIZE;
-    return filtered.slice(start, start + PAGE_SIZE);
-  }, [filtered, pageSafe]);
-
-  const goToPage = useCallback(
-    (nextPage: number) => {
-      setPage((prev) => {
-        if (nextPage < 1) return prev;
-        if (nextPage > totalPages) return prev;
-        return nextPage;
-      });
-    },
-    [totalPages]
-  );
-
-  return (
-    <section
-      style={{
-        border: "1px solid #ccc",
-        borderRadius: 8,
-        padding: 16,
-        width: 420,
-      }}
-    >
-      <header
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginBottom: 12,
-        }}
-      >
-        <h2 style={{ margin: 0 }}>Teams</h2>
-        <button onClick={handleRefresh} disabled={state.loading}>
-          {state.loading ? "Refreshing..." : "Refresh"}
-        </button>
-      </header>
-
-      <div style={{ marginBottom: 12 }}>
-        <input
-          type="text"
-          placeholder="Search teams by name or owner"
-          value={search}
-          onChange={handleSearchChange}
-          style={{ width: "100%", padding: 8, boxSizing: "border-box" }}
-        />
-      </div>
-
-      {state.error && (
-        <div style={{ color: "red", marginBottom: 8 }}>Error: {state.error}</div>
-      )}
-
-      <ul style={{ listStyle: "none", padding: 0, margin: 0, minHeight: 120 }}>
-        {state.loading && state.data.length === 0 ? (
-          <li>Loading teams...</li>
-        ) : paginated.length === 0 ? (
-          <li>No teams found.</li>
-        ) : (
-          paginated.map((team) => (
-            <li
-              key={team.id}
-              style={{
-                padding: "6px 4px",
-                borderBottom: "1px solid #eee",
-              }}
-            >
-              <div style={{ fontWeight: 600 }}>{team.name}</div>
-              <div style={{ fontSize: 12, color: "#555" }}>
-                Owner: {team.owner}
-              </div>
-              <div style={{ fontSize: 12, color: "#777" }}>
-                Members: {team.members}
-              </div>
-            </li>
-          ))
-        )}
-      </ul>
-
-      <Pagination
-        page={pageSafe}
-        totalPages={totalPages}
-        onChange={goToPage}
-      />
-    </section>
-  );
-};
-
-type PaginationProps = {
-  page: number;
-  totalPages: number;
-  onChange: (page: number) => void;
-};
-
-const Pagination: React.FC<PaginationProps> = ({
-  page,
-  totalPages,
-  onChange,
-}) => {
-  const canPrev = page > 1;
-  const canNext = page < totalPages;
-
-  return (
-    <div
-      style={{
-        marginTop: 12,
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        fontSize: 12,
-      }}
-    >
-      <div>
-        Page {page} of {totalPages}
-      </div>
-      <div style={{ display: "flex", gap: 8 }}>
-        <button onClick={() => onChange(page - 1)} disabled={!canPrev}>
-          Previous
-        </button>
-        <button onClick={() => onChange(page + 1)} disabled={!canNext}>
-          Next
-        </button>
-      </div>
-    </div>
-  );
-};

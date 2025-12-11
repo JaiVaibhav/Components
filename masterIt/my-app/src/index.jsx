@@ -8,6 +8,7 @@ import Carousel from "./pages/Carousel";
 import Store from "./pages/Store";
 import InfiniteScroll from "./pages/InfiniteScroll";
 import {AdminDashboard} from "./exercises/exerciseLatest";
+import SearchFunctionality from "./pages/search";
 const rootElement = document.getElementById("root");
 const root = createRoot(rootElement);
 
@@ -21,6 +22,8 @@ root.render(
         <Route path="/store/*" element={<Store/>} />
         <Route path="/infiniteScroll" element={<InfiniteScroll/>}/>
         <Route path="/exercise" element={<AdminDashboard/>}/>
+        <Route path="/search" element={<SearchFunctionality/>}/>
+
       </Routes>
     </BrowserRouter>
   // </StrictMode>
