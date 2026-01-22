@@ -1,0 +1,32 @@
+1. How does the browser parse HTML and build the DOM tree? What happens when parsing is interrupted by JavaScript?
+2. What makes an HTML element semantic, and how does semantic HTML affect accessibility and SEO?
+3. Explain how the <script> tag behaves with defer, async, and without attributes. When would you use each?
+4. What problems do <iframe>s solve, and what new problems do they introduce (performance, security, UX)?
+5. How does the browser decide focus order (tab order), and how can it break in SPAs?
+6. Explain how form submission works at the browser level before JavaScript intercepts it.
+7. What are ARIA roles, and why is “no ARIA is better than bad ARIA”?
+8. How do screen readers interpret dynamic content updates (e.g. modals, toasts)?
+9. What is the difference between display: none and visibility: hidden in terms of accessibility and layout?
+10. How does HTML5 handle media loading (<img>, <video>) and what causes render-blocking?
+11. Explain the difference between contenteditable and controlled inputs. Why is contenteditable hard to manage?
+12. How does the browser handle autofill and password managers, and what can break them?
+13. What is the difference between data-* attributes and custom JS state? When should you use them?
+14. How does the browser handle malformed HTML, and why does this matter in large applications?
+15. What are common HTML-level causes of performance or accessibility regressions in production?
+
+✅ 15 CSS3 Questions (Senior Frontend Level)
+1. Explain the CSS rendering pipeline: style calculation → layout → paint → composite. Where are performance bottlenecks?
+2. What causes layout thrashing, and how do you detect and prevent it?
+3. Which CSS properties trigger layout, paint, or composite — and why does this matter?
+4. How does CSS specificity actually work, and how does it become a scalability problem?
+5. What is stacking context, and why do z-index bugs happen even with large values?
+6. How do position: sticky and position: fixed behave differently across scroll containers?
+7. Explain how will-change works. Why can overusing it harm performance?
+8. What are the performance trade-offs of CSS-in-JS vs static CSS?
+9. How does the browser decide which stylesheets are render-blocking?
+10. Explain the difference between flexbox and grid beyond layout — when does each break down?
+11. What causes CLS (Cumulative Layout Shift) at the CSS level, and how do you prevent it?
+12. How do media queries affect rendering and performance on resize or orientation change?
+13. What problems arise from deeply nested selectors in large codebases?
+14. How do fonts (FOIT / FOUT) affect rendering, and how do you mitigate them?
+15. What CSS patterns scale poorly in large applications, and how do you avoid them?
