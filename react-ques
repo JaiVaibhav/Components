@@ -1,0 +1,80 @@
+React Fundamentals & Rendering
+1. How does React re-rendering work?
+2. Difference between state vs props
+3. Difference between refs vs state
+4. Why refs don’t trigger re-renders
+5. Why props look the same but still cause re-render (identity vs equality)
+6. Why keys are required in React lists
+7. What happens if keys are missing or not unique
+8. How does React reconciliation work?
+9. Explain React Fiber
+10. Why React.memo sometimes doesn’t work
+
+🪝 Hooks & Effects
+1. Why does useEffect run twice in Strict Mode (dev only)?
+2. What are non-idempotent effects?
+3. How does useEffect cleanup work?
+4. What happens if cleanup is missing in useEffect?
+5. Why state becomes stale inside useEffect
+6. How to fix stale closures
+7. When to use functional state updates (setState(prev => …))
+8. When should useEffect be split
+9. When should useEffects be combined
+10. Difference between useEffect vs useLayoutEffect
+
+🧠 State Management & Architecture
+1. When does state colocation beat lifting state
+2. Why derived state is an anti-pattern
+3. Why derived data should not be stored in state
+4. When to avoid state and use derived UI
+5. Why Context causes re-render storms
+6. When should Context NOT be used
+7. Difference between Context vs Redux vs Zustand
+8. Why selector-based state libraries (Zustand) reduce re-renders
+9. Signals vs stores vs context — why subscriptions matter
+10. When to rely on server-cached state instead of lifting state
+
+⚡ Performance & Optimization
+1. What causes unnecessary re-renders
+2. Difference between useMemo vs useCallback
+3. When should useMemo / useCallback be avoided
+4. Why referential stability matters
+5. How function props break React.memo
+6. How to debug re-renders using React Profiler
+7. What causes render loops
+8. How automatic batching works in React 18
+
+🧵 Concurrency & Scheduling (React 18 / 19)
+1. Difference between legacy sync rendering vs concurrent rendering
+2. Why interruptible rendering is important
+3. What are lanes in React and how they control priority
+4. How the Fiber scheduler pauses, resumes, abandons work
+5. When to use useTransition
+6. Difference between useTransition vs startTransition
+7. How useDeferredValue avoids UI lag
+8. Role of Offscreen rendering
+
+🌊 Suspense, Streaming & Hydration
+1. What changed with Suspense in React 18 streaming
+2. Why hydration mismatch happens even if HTML matches
+3. Difference between full vs progressive hydration
+4. What is selective hydration
+5. What is lazy hydration
+6. What is React Flight
+7. What causes client waterfalls with RSC
+8. Why streaming renders shell first, details later
+
+🧩 Events & Internals
+1. What are Synthetic Events in React?
+2. Why does React attach event listeners at the root
+3. How does React know which element triggered the event
+4. How does event delegation work in React
+5. How do portals work with event bubbling
+
+🧱 Error Handling
+1. What are Error Boundaries
+2. What errors Error Boundaries cannot catch
+
+🧪 Components & Forms ✅ (THIS WAS MISSED EARLIER — NOW FIXED)
+1. Controlled vs Uncontrolled components
+2. Render cost comparison of controlled vs uncontrolled components
