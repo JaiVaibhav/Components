@@ -1,0 +1,51 @@
+Missing Questions
+1. How does the browser handle focus management and tab order?
+2. What problems arise when focus is not managed correctly in SPAs?
+3. How do screen readers interpret dynamic DOM updates?
+4. How does React manage focus during re-renders?
+Why this matters:
+* Accessibility bugs are production bugs
+* Many seniors fail here
+
+🟡 2. Forms, Inputs & IME Handling (Very Real-World)
+Rarely studied, but frequently encountered.
+Missing Questions
+1. How does the browser handle IME (Input Method Editor) composition events?
+2. What issues arise with controlled inputs during fast typing or IME usage?
+3. Why can controlled inputs feel laggy, and how do you fix it?
+
+🟠 3. CSS Architecture & Runtime Behavior (Not Styling Basics)
+You covered performance, but not CSS as a runtime system.
+Missing Questions
+1. How does CSS specificity and cascade impact large applications?
+2. What are the performance implications of CSS-in-JS vs static CSS?
+3. What causes CSS to become render-blocking?
+4. How do style recalculations affect performance?
+
+🔵 4. iFrames & Embedding (Security + Architecture)
+Common in fintech, ads, auth, analytics.
+Missing Questions
+1. How do iframes interact with the Same-Origin Policy?
+2. How does postMessage work, and what are its security risks?
+3. When would you use an iframe instead of a component?
+
+🟣 5. Error Handling Beyond React
+You covered Error Boundaries — but not system-wide failure handling.
+Missing Questions
+1. How do you design graceful degradation in frontend applications?
+2. How do you handle partial failures (API success + UI failure)?
+3. What is the difference between retry, fallback, and circuit breaking on the frontend?
+
+🟤 6. Time, Date & Locale (Painful but Real)
+This breaks production apps more than people admit.
+Missing Questions
+1. Why is handling timezones difficult in frontend applications?
+2. How do browsers handle dates internally?
+3. How do you design locale-aware UI without re-render storms?
+
+🧠 7. Frontend as a Distributed System (Very Senior Signal)
+This is Staff+ thinking, but still fair game.
+Missing Questions
+1. How do frontend apps behave under eventual consistency?
+2. How do you design UI that tolerates stale data?
+3. What frontend patterns help handle partial backend outages?
