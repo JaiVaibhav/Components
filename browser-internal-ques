@@ -1,0 +1,45 @@
+Browser & Performance Questions YOU Shared
+🌐 Browser Internals
+1. Explain how the browser rendering pipeline works
+2. How do browsers render HTML, CSS, and JavaScript?
+3. What is the Critical Rendering Path and what blocks it?
+4. Difference between repaint and reflow
+5. How does JavaScript execution interact with browser rendering?
+6. Why does long-running JavaScript block the UI?
+7. How does the browser decide when to repaint or reflow?
+8. Explain browser event delegation
+9. How does the browser handle events internally?
+
+🔄 Event Loop & Scheduling (Browser Side)
+1. Explain the Event Loop
+2. Difference between microtasks and macrotasks
+3. When does the browser render relative to the event loop?
+4. Do browser events go to the macrotask queue?
+5. Can multiple events exist at the same time?
+6. Why can only one event handler run at a time?
+7. Difference between concurrency and parallelism in the browser
+8. How do browser events get queued and executed?
+
+⚡ Performance & Rendering Optimization
+1. What causes layout thrashing?
+2. How do you minimize reflow and repaint?
+3. How does requestAnimationFrame work and why is it used?
+4. Why scroll events cause performance issues?
+5. How to optimize scroll performance?
+6. Difference between throttling and debouncing from a performance perspective
+7. How does IntersectionObserver improve performance over scroll listeners?
+8. What are Core Web Vitals (LCP, INP, CLS)?
+9. How does lazy loading improve performance?
+10. Why rendering large lists causes performance issues?
+
+📦 Networking & Browser Performance
+1. Explain DNS resolution, TCP handshake, and TLS
+2. How does caching work in the browser?
+3. Difference between localStorage, sessionStorage, and cookies
+4. Explain CORS and preflight requests
+5. How does the browser handle network waterfalls?
+
+🧠 Memory & Runtime (Browser Context)
+1. What causes memory leaks in the browser?
+2. How do detached DOM nodes cause memory leaks?
+3. How does garbage collection affect performance?
