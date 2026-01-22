@@ -1,0 +1,177 @@
+Rendering & Performance Scenarios
+1️⃣ Scroll Jank Scenario
+Users report UI freezes while scrolling a feed after the app has been open for a while. APIs are fast, but Performance tab shows long tasks and layout recalculations.
+How do you debug and fix this?
+
+2️⃣ Unnecessary Re-renders
+A dashboard page re-renders multiple times even when user input hasn’t changed. React Profiler shows repeated renders of child components.
+How do you identify the cause and reduce renders?
+
+3️⃣ Large List Performance
+A page renders 20k rows. Initial load is fine, but scrolling becomes slow over time.
+What architectural changes would you make?
+
+4️⃣ React.memo Not Working
+You wrapped a component with React.memo, but it still re-renders on every parent update.
+What could be the reasons and how do you fix it?
+
+5️⃣ Infinite Scroll Bug
+Infinite scroll sometimes fetches the same page twice and sometimes skips data.
+What could be wrong in the implementation?
+
+🔹 State & Effects Scenarios
+6️⃣ useEffect Loop
+A component enters a render loop after adding a useEffect.
+How do you debug and refactor it?
+
+7️⃣ Stale State Bug
+A WebSocket listener logs outdated state values even though state updates correctly elsewhere.
+Why does this happen and how do you fix it?
+
+8️⃣ Context Performance Issue
+After adding one value to Context, the entire app feels slower.
+What went wrong and how would you redesign it?
+
+9️⃣ Derived State Bug
+State is derived from props using useEffect, and UI sometimes shows incorrect values.
+Why does this happen and how should it be fixed?
+
+🔹 Concurrency & Scheduling Scenarios
+🔟 Input Lag in React 18
+Typing in a search box becomes laggy when results update.
+How do React 18 features help here?
+
+1️⃣1️⃣ Urgent vs Non-Urgent Updates
+A page has both animations and heavy data rendering. Animations stutter when data updates.
+How do you prioritize updates?
+
+1️⃣2️⃣ Suspense Misuse
+Wrapping a large page in a single <Suspense> causes blank screens.
+How would you redesign Suspense boundaries?
+
+🔹 Browser & Event Loop Scenarios
+1️⃣3️⃣ UI Freezes Without Errors
+JS CPU usage spikes, but no errors appear.
+How do you debug this using browser tools?
+
+1️⃣4️⃣ Scroll Event Performance
+Scroll handlers cause performance degradation even with throttling.
+What browser APIs would you consider instead?
+
+1️⃣5️⃣ Event Listener Leak
+Performance degrades after navigating between pages multiple times.
+What could be leaking and how do you find it?
+
+🔹 Networking & Real-Time Scenarios
+1️⃣6️⃣ Real-Time Feed Jank
+Messages arrive via WebSocket, but UI becomes sluggish as message count grows.
+What changes do you make?
+
+1️⃣7️⃣ Race Condition in Fetching
+User switches tabs quickly and sees incorrect data.
+How do you prevent this?
+
+1️⃣8️⃣ Offline/Online Transitions
+App behaves unpredictably when network drops and reconnects.
+How do you design resilience?
+
+🔹 Architecture & System Design Scenarios
+1️⃣9️⃣ Micro-Frontend Performance
+Each micro-frontend loads independently but page load time is high.
+How do you optimize overall UX?
+
+2️⃣0️⃣ Shared Component Library Issue
+Updating a shared UI component breaks multiple teams’ apps.
+How do you prevent this?
+
+2️⃣1️⃣ Feature Flag Complexity
+Feature flags start causing tangled logic and bugs.
+How do you redesign flag usage?
+
+2️⃣2️⃣ Legacy Migration
+You need to migrate a large legacy UI incrementally without breaking users.
+What strategy do you follow?
+
+🔹 Debugging & Production Scenarios
+2️⃣3️⃣ Memory Leak in Production
+Memory usage grows over time in production but not locally.
+How do you investigate and fix it?
+
+2️⃣4️⃣ Performance Regression After Release
+Core Web Vitals regress after a release.
+How do you identify the root cause quickly?
+
+2️⃣5️⃣ Error Boundary Not Catching Errors
+A production crash bypasses Error Boundaries.
+Why can this happen and how do you handle it?
+Accessibility & UX Failure Scenarios (Very Common, Often Missed)
+26️⃣ Accessibility Regression
+After a UI refactor, keyboard navigation breaks and screen-reader users report issues.
+How do you debug and fix this without rolling back the entire release?
+
+27️⃣ Focus Loss Bug
+Users report that focus jumps unexpectedly when modals open/close or lists update.
+What are the likely causes and how do you design predictable focus management?
+
+🟡 Forms, Inputs & IME Scenarios (High-signal)
+28️⃣ Input Lag in Forms
+Controlled inputs feel laggy during fast typing, especially on low-end devices.
+Why does this happen and how do you fix it without losing control?
+
+29️⃣ IME Bug
+Users using non-English keyboards (IME) report broken input behavior.
+What’s happening and how do you handle composition events correctly?
+
+🟠 CSS & Layout System Scenarios
+30️⃣ Layout Thrashing via CSS
+A UI looks simple but causes frequent reflows and poor performance.
+How do you identify and fix CSS-driven layout thrashing?
+
+31️⃣ CSS-in-JS Performance Regression
+After adopting CSS-in-JS, page load time and runtime performance regress.
+How do you evaluate whether the trade-off was worth it?
+
+🔵 iFrame & Embedded Content Scenarios
+32️⃣ Cross-Domain Communication Bug
+An embedded iframe fails to communicate reliably with the parent app.
+How do you debug and secure postMessage communication?
+
+33️⃣ Third-Party Script Impact
+A third-party widget causes performance and security issues.
+How do you sandbox or isolate it?
+
+🟣 Error Handling & Resilience Scenarios
+34️⃣ Partial Failure UI
+Some APIs succeed while others fail, leaving the UI in an inconsistent state.
+How do you design graceful degradation?
+
+35️⃣ Retry Storm
+Automatic retries overload the backend and worsen UX.
+How do you design safe retry and backoff strategies on the frontend?
+
+🟤 Time, Locale & Globalization Scenarios
+36️⃣ Timezone Bug
+Users in different timezones see incorrect dates or ordering.
+Where do such bugs usually originate and how do you prevent them?
+
+37️⃣ Locale Performance Issue
+Switching locales causes large re-renders and performance issues.
+How do you architect locale-aware UI efficiently?
+
+🧠 Distributed UI / Consistency Scenarios (Staff-level)
+38️⃣ Stale Data UI
+UI shows stale data even though the backend is eventually consistent.
+How do you design UI to tolerate inconsistency?
+
+39️⃣ Multi-Tab State Sync
+The same app open in multiple tabs goes out of sync.
+How do you coordinate state across tabs safely?
+
+🔧 Tooling & DX Scenarios
+40️⃣ Build Time Explosion
+As the app grows, build times become painfully slow.
+How do you diagnose and improve build performance?
+
+41️⃣ Feature Flag Debt
+Feature flags accumulate and become permanent code paths.
+How do you clean this up without breaking production?
