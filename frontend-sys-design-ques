@@ -1,0 +1,101 @@
+Frontend System Design & Architecture
+1️⃣ Micro-Frontend Architecture
+How do you architect a micro-frontend system with independent deployments?
+
+2️⃣ State Management Trade-offs
+Explain the trade-offs between different state management patterns (Redux, Zustand, Context API).
+
+3️⃣ Design System at Scale
+How do you implement a design system that scales across multiple teams?
+
+4️⃣ Monorepo & Dependency Management
+What’s your approach to handling shared dependencies in a monorepo?
+
+5️⃣ Frontend Architecture at Scale
+How do you architect a large-scale frontend application used by multiple teams?
+
+⚛️ Rendering, Data & Performance Architecture
+6️⃣ Server-Side Rendering & Hydration
+How do you implement server-side rendering with hydration for complex applications?
+
+7️⃣ React Concurrent Architecture
+Explain React 18’s Concurrent Features and how they impact application architecture.
+
+8️⃣ Bundle Splitting Strategy
+How do you optimize bundle splitting for maximum performance across different routes?
+
+9️⃣ Data Fetching Architecture
+What strategies do you use for implementing efficient data fetching patterns?
+
+🔟 Streaming & Incremental Rendering
+Why does streaming help render the shell first and details later?
+
+🛠 Build Systems & Developer Experience
+1️⃣1️⃣ CI/CD for Frontend
+How do you design a CI/CD pipeline for frontend applications with multiple environments?
+
+1️⃣2️⃣ Feature Flags
+What’s your approach to implementing feature flags in large frontend applications?
+
+1️⃣3️⃣ Monitoring & Error Tracking
+How do you set up monitoring and error tracking for production frontend apps?
+
+1️⃣4️⃣ A/B Testing
+Explain your strategy for A/B testing in React applications.
+
+🌍 Modern Web, Cross-Platform & Real-Time
+1️⃣5️⃣ Progressive Web Apps
+How do you implement progressive web app features for better user experience?
+
+1️⃣6️⃣ Responsive Architecture
+What’s your approach to building responsive applications that work across all devices?
+
+1️⃣7️⃣ Offline Support & Sync
+How do you handle offline functionality and data synchronization?
+
+1️⃣8️⃣ Real-Time Systems
+Explain your strategy for implementing real-time features (WebSockets, Server-Sent Events).
+
+🧠 Product-Scale Frontend System Design
+(These were MISSED earlier — now FIXED)
+1️⃣9️⃣ Netflix-like Streaming UI
+Design the frontend architecture for a streaming application like Netflix.
+
+2️⃣0️⃣ Airbnb-Scale Component Architecture
+How does Airbnb maintain UX consistency across 100+ teams using component-driven architecture?
+
+2️⃣1️⃣ Real-Time Maps & Tracking (Uber / Ola / Swiggy)
+How do you design a frontend system for real-time maps, trip tracking, and live updates without frame drops?
+
+2️⃣2️⃣ Instagram Web Performance
+How does Instagram Web use lazy loading and route-based code splitting to work well on low-bandwidth networks?
+
+2️⃣3️⃣ Amazon-Scale Performance Architecture
+How does Amazon use performance budgets and incremental rendering during peak traffic?
+
+🏗 System-Level Building Blocks
+(You explicitly asked to remember these as system design)
+2️⃣4️⃣ Task Scheduler (Concurrency Control)
+Design a task scheduler that controls concurrency and execution order.
+
+2️⃣5️⃣ LRU Cache (O(1) Design)
+Design an LRU cache with O(1) time complexity.
+
+2️⃣6️⃣ Browser Rendering & Event Loop (System Perspective)
+Explain browser rendering and the event loop from a system design perspective.
+
+2️⃣7️⃣ Infinite Feed Architecture
+Design an infinite feed system with frontend performance and backend coordination.
+
+🧑‍💼 Leadership, Quality & Migration
+2️⃣8️⃣ Legacy Frontend Migration
+Explain your strategy for migrating a legacy frontend application to a modern tech stack.
+
+2️⃣9️⃣ Technical Debt Management
+What’s your approach to technical debt management in large codebases?
+
+3️⃣0️⃣ Code Quality & Reviews
+How do you establish code review processes and maintain code quality standards?
+
+3️⃣1️⃣ Team Enablement
+How do you mentor junior developers and conduct technical interviews?
