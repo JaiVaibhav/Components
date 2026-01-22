@@ -1,0 +1,135 @@
+Memory, Performance & Scheduling (Advanced)
+1️⃣ requestIdleCallback (Formalized)
+What is requestIdleCallback, how does the browser decide “idle time”, and why is it unsafe for critical UI work?
+
+2️⃣ Long Tasks & Main Thread Blocking
+What are Long Tasks in the browser, and how do they impact INP and responsiveness?
+
+3️⃣ Scheduler API (Very New, Elite-level)
+What is the Scheduler API (scheduler.postTask) and how does it differ from setTimeout and requestIdleCallback?
+
+🎨 Rendering & Graphics (Often Missed)
+4️⃣ requestAnimationFrame (Deep)
+How does requestAnimationFrame align with the browser’s rendering loop, and why is it preferred for animations?
+(You mentioned it briefly, but never as a formal question)
+
+5️⃣ Compositing & Layers
+What is compositing in the browser rendering pipeline, and how do layers improve performance?
+
+6️⃣ GPU Acceleration
+Which CSS properties trigger GPU acceleration, and why can overusing them hurt performance?
+
+📦 Storage & Persistence (Advanced)
+7️⃣ IndexedDB
+What is IndexedDB, and when should it be preferred over localStorage or sessionStorage?
+
+8️⃣ Storage Quotas & Eviction
+How do browsers enforce storage quotas, and what happens when storage limits are exceeded?
+
+9️⃣ Cache Storage API
+What is the Cache Storage API, and how is it used with Service Workers for offline-first apps?
+
+🔐 Security & Isolation (Senior+ Signal)
+🔟 Same-Origin Policy (Deep)
+What is the Same-Origin Policy, and how does it protect against cross-site attacks?
+
+1️⃣1️⃣ Cross-Origin Isolation
+What is cross-origin isolation, and why is it required for features like SharedArrayBuffer?
+
+1️⃣2️⃣ XSS at the Browser Level
+How does the browser mitigate XSS attacks beyond framework-level escaping?
+
+🧵 Concurrency Beyond JS (Very Senior)
+1️⃣3️⃣ SharedArrayBuffer & Atomics
+What problem do SharedArrayBuffer and Atomics solve, and why are they heavily restricted?
+
+1️⃣4️⃣ OffscreenCanvas
+What is OffscreenCanvas, and how does it enable rendering work off the main thread?
+
+📱 Platform & Device APIs (Often Asked Unexpectedly)
+1️⃣5️⃣ ResizeObserver
+What is ResizeObserver, and how does it differ from window resize events?
+
+1️⃣6️⃣ Performance Observer
+What is PerformanceObserver, and how is it used to measure real user performance metrics?
+
+1️⃣7️⃣ Page Visibility API
+How does the Page Visibility API help optimize background tabs and resource usage?
+
+1️⃣8️⃣ Network Information API
+How can the Network Information API be used to adapt UX based on connection quality?
+
+🧪 Debugging & Profiling (Elite Signal)
+1️⃣9️⃣ Chrome Performance Panel
+How do you identify layout thrashing and long tasks using Chrome DevTools Performance tab?
+
+2️⃣0️⃣ Memory Profiling
+How do you detect and debug memory leaks using browser devtools?
+
+Intersection Observer (PARTIALLY covered → now formalized)
+You discussed it conceptually, but no explicit question existed.
+1️⃣ Intersection Observer vs Scroll Events
+How does IntersectionObserver work internally, and why is it more performant than scroll listeners?
+
+2️⃣ Intersection Observer Use Cases
+When would you choose IntersectionObserver over throttled scroll handlers, and when would you not?
+
+3️⃣ Intersection Observer & Rendering
+How does IntersectionObserver interact with the browser rendering pipeline?
+
+🟡 Mutation Observer (NOT covered earlier)
+4️⃣ Mutation Observer Basics
+What is MutationObserver, and how does it differ from polling or DOM events?
+
+5️⃣ Mutation Observer Use Cases
+In what real-world scenarios would you use MutationObserver in a frontend application?
+
+6️⃣ Mutation Observer Performance
+What are the performance implications of using MutationObserver on large DOM trees?
+
+🟠 Web Workers (NOT covered earlier)
+7️⃣ Web Workers Fundamentals
+What problem do Web Workers solve, and how do they differ from the main thread execution model?
+
+8️⃣ Web Workers & UI Responsiveness
+How do Web Workers help prevent UI blocking in long-running computations?
+
+9️⃣ Communication with Web Workers
+How does message passing work between the main thread and a Web Worker?
+
+🔟 Web Workers vs Async JavaScript
+Why can async/await still block rendering, and how do Web Workers solve this?
+
+🔵 Shared Workers (NOT covered)
+1️⃣1️⃣ Shared Workers
+What are Shared Workers, and how are they different from Dedicated Web Workers?
+
+1️⃣2️⃣ Shared Workers Use Cases
+When would you use Shared Workers in a multi-tab application?
+
+🟣 Service Workers (NOT covered as questions)
+1️⃣3️⃣ Service Worker Lifecycle
+Explain the Service Worker lifecycle and how it differs from normal JavaScript execution.
+
+1️⃣4️⃣ Service Workers & Caching
+How do Service Workers enable offline support and advanced caching strategies?
+
+1️⃣5️⃣ Service Workers vs HTTP Cache
+How do Service Workers interact with the browser’s HTTP cache and CDN caching?
+
+1️⃣6️⃣ Service Workers & Security
+Why are Service Workers restricted to HTTPS, and what security risks do they mitigate?
+
+🟤 Worklets (Very Senior / Staff-level topic)
+1️⃣7️⃣ Worklets Overview
+What are Worklets, and how are they different from Web Workers?
+
+1️⃣8️⃣ Rendering Worklets
+How do rendering worklets (e.g., CSS Paint Worklet) integrate into the rendering pipeline?
+
+🧠 Scheduling & Background Work (Advanced)
+1️⃣9️⃣ requestIdleCallback
+What is requestIdleCallback, and when should it be used instead of setTimeout?
+
+2️⃣0️⃣ Background Tasks
+How do browsers schedule background tasks without impacting user interactions?
