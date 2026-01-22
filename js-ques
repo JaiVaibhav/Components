@@ -1,0 +1,86 @@
+✅ JavaScript Questions You Shared
+🧠 JavaScript Core & Language Fundamentals
+1. Explain the JavaScript Event Loop
+2. Difference between microtasks and macrotasks
+3. Explain closures with a real example
+4. What is hoisting in JavaScript?
+5. Explain the this keyword in JavaScript
+6. Difference between var, let, and const
+7. Difference between == and ===
+8. What are truthy and falsy values?
+9. Explain implicit vs explicit type coercion
+10. Explain call, apply, and bind
+
+⏳ Async JavaScript & Control Flow
+1. What are Promises and their states?
+2. How does async / await work internally?
+3. What is callback hell and how do you avoid it?
+4. Common error handling patterns in async JavaScript
+5. Explain promise chaining
+6. Explain race conditions in async JavaScript
+7. How does JavaScript handle concurrent async operations?
+8. Difference between synchronous and asynchronous execution
+
+🔁 Functions, Arrays & Objects
+1. Flatten a nested array without using flat()
+2. Difference between shallow copy and deep copy
+3. Explain currying in JavaScript
+4. Explain partial application
+5. Explain map, filter, and reduce
+6. When should you not use map/filter/reduce?
+7. Explain object references vs primitive values
+8. How does prototypal inheritance work?
+9. Explain spread vs rest operators
+
+🧠 Memory, Execution & Internals
+1. Explain memory leaks in JavaScript
+2. How does garbage collection work in JavaScript?
+3. Explain execution context
+4. What is the call stack?
+5. How does JavaScript handle recursion?
+6. What causes stack overflow errors?
+
+🌐 Node.js & Runtime APIs (You explicitly shared these)
+1. What are Streams in Node.js?
+2. Difference between readFile vs createReadStream
+3. What is a Cron Job and where is it used?
+4. How do timers work internally in JavaScript?
+5. Explain event emitters
+6. Difference between blocking vs non-blocking code
+
+⚡ Performance & Utilities
+1. What is debounce?
+2. What is throttle?
+3. Difference between debounce vs throttle
+4. How do you implement debounce?
+5. How do you implement throttle?
+
+
+Write a polyfill for Promise
+Write a polyfill for Promise.all
+Write a polyfill for Promise.any
+Write a polyfill for Promise.race
+Write a polyfill for Promise.finally
+Write a polyfill for setTimeout
+Write a polyfill for setInterval
+Write a polyfill for call
+Write a polyfill for apply
+Write a polyfill for bind
+Write a polyfill for map
+Write a polyfill for filter
+Write a polyfill for reduce
+Write a polyfill for debounce
+Write a polyfill for throttle
+Implement a custom EventEmitter
+Implement a memoize function
+Implement once() utility
+Implement retry logic for promises
+Implement timeout wrapper for promises
+Implement parallel async task runner
+Implement sequential async executor
+Implement cancellable promises
+Implement custom deep clone
+Implement custom JSON.stringify
+Implement custom JSON.parse
+Implement LRU cache in JavaScript
+Implement task scheduler with concurrency control
