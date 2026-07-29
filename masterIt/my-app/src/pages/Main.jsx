@@ -1,56 +1,55 @@
 import { Link } from "react-router-dom";
 
+const lessons = [
+  { to: "/progress", icon: "01", label: "State", title: "Progress Bars", description: "Practice component state, effects, intervals, and cleanup with start, pause, resume, and stop controls.", tags: ["useState", "useEffect", "useRef"] },
+  { to: "/carousel", icon: "02", label: "Data fetching", title: "Product Carousel", description: "Fetch remote data and turn it into an automatically rotating, interactive carousel.", tags: ["fetch", "effects", "arrays"] },
+  { to: "/infiniteScroll", icon: "03", label: "Custom hooks", title: "Infinite Scroll", description: "Load products as the last item enters view using IntersectionObserver and a reusable hook.", tags: ["custom hook", "observer", "pagination"] },
+  { to: "/search", icon: "04", label: "Performance", title: "Throttle Practice", description: "Explore throttling behaviour and why event-heavy interactions need controlled updates.", tags: ["throttle", "closures", "events"] },
+  { to: "/exercise", icon: "05", label: "Challenge", title: "Search Exercise", description: "A dedicated exercise area for debounce, callback, ref, and infinite-scroll patterns.", tags: ["debounce", "useCallback", "useRef"] },
+];
+
 export default function Main() {
   return (
-    <main className="site-root">
-      <header className="site-header">
-        <div className="site-brand">My Components</div>
-        <nav className="site-nav">
-          <Link to="/">Home</Link>
-          <Link to="/carousel">Carousel</Link>
-          <Link to="/progress">Progress</Link>
-          <Link to="/store">Store</Link>
-          <Link to="/infiniteScroll">InfiniteScroll</Link>
-          <Link to="/exercise">Exercise</Link>
-          <Link to="/search">Search</Link>
+    <main className="learning-page">
+      <header className="learning-header container">
+        <Link className="learning-brand" to="/"><span>⌘</span> React Lab</Link>
+        <nav className="learning-nav" aria-label="Primary navigation">
+          <a href="#lessons">Lessons</a>
+          <Link to="/exercise">Challenges</Link>
         </nav>
       </header>
 
-      <section className="hero">
-        <div className="hero-inner">
-          <h1 className="hero-title">A Modern Component Playground</h1>
-          <p className="hero-sub">Explore reusable components, live demos, and a mini-store powered by the Fake Store API.</p>
-          <div className="hero-ctas">
-            <Link to="/carousel" className="btn btn-primary">Try Carousel</Link>
-            <Link to="/store" className="btn btn-outline">Open Store</Link>
+      <section className="learning-hero container">
+        <div>
+          <p className="eyebrow">BUILD · BREAK · LEARN</p>
+          <h1>Practice React,<br /><em>one component</em> at a time.</h1>
+          <p className="hero-copy">A small collection of interactive experiments for learning the React concepts that make real interfaces work.</p>
+          <div className="hero-actions">
+            <a className="learn-button primary" href="#lessons">Browse lessons <span>↓</span></a>
+            <Link className="learn-button secondary" to="/exercise">Start a challenge</Link>
           </div>
         </div>
-        <div className="hero-visual">
-          <div className="visual-card">Preview</div>
+        <aside className="learning-progress" aria-label="Learning progress">
+          <div className="progress-top"><span>YOUR PLAYGROUND</span><span className="pulse" /></div>
+          <strong>5</strong><p>hands-on React lessons</p>
+          <div className="progress-track"><span /></div>
+          <small>Pick any lesson and experiment freely.</small>
+        </aside>
+      </section>
+
+      <section id="lessons" className="lesson-section container">
+        <div className="section-heading"><div><p className="eyebrow">LEARNING PATH</p><h2>Explore the lab</h2></div><p>Each lesson is a working demo. Read the code, change it, and see what happens.</p></div>
+        <div className="lesson-grid">
+          {lessons.map((lesson) => <Link className="lesson-card" to={lesson.to} key={lesson.to}>
+            <div className="lesson-card-top"><span className="lesson-number">{lesson.icon}</span><span className="lesson-label">{lesson.label}</span><span className="arrow">↗</span></div>
+            <h3>{lesson.title}</h3><p>{lesson.description}</p>
+            <div className="lesson-tags">{lesson.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>
+          </Link>)}
         </div>
       </section>
 
-      <section className="features container">
-        <h2>Highlights</h2>
-        <div className="feature-grid">
-          <article className="feature-card">
-            <h3>Reusable UI</h3>
-            <p>Well-structured, testable components that are easy to extend.</p>
-          </article>
-          <article className="feature-card">
-            <h3>Responsive</h3>
-            <p>Layouts scale across devices with sensible defaults and accessibility considerations.</p>
-          </article>
-          <article className="feature-card">
-            <h3>Shop Integration</h3>
-            <p>Demo store with cart persistence and product pages — ready to plug into a real backend.</p>
-          </article>
-        </div>
-      </section>
-
-      <footer className="site-footer">
-        <div className="container">© {new Date().getFullYear()} My Components — Built for demos</div>
-      </footer>
+      <section className="learning-note container"><span>✦</span><p>Tip: the goal isn’t to finish quickly—open DevTools, tweak the source, and make each example your own.</p></section>
+      <footer className="learning-footer container">React Lab · built for deliberate practice</footer>
     </main>
   );
 }
