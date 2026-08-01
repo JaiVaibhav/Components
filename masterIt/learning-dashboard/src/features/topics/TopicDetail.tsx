@@ -1,14 +1,399 @@
-import { lazy, Suspense, useEffect, useState } from "react";
-import { ExternalLink, FileCode2, FileText, FolderPlus, Plus, Save, Trash2 } from "lucide-react";
-import { Link, useParams } from "react-router-dom";
-import { useLiveQuery } from "dexie-react-hooks";
-import ReactMarkdown from "react-markdown";
-import { db, recordOpen } from "../../db/database";
-import { STATUSES, statusLabel, type ResourceType, uid } from "../../models/types";
-const Monaco = lazy(() => import("@monaco-editor/react"));
-export default function TopicDetail() { const { topicId } = useParams(); const data = useLiveQuery(async () => { if (!topicId) return undefined; const topic = await db.topics.get(topicId); if (!topic) return { topic: undefined }; return { topic, path: await db.learningPaths.get(topic.learningPathId), note: await db.notes.where("topicId").equals(topicId).first(), snippets: await db.snippets.where("topicId").equals(topicId).toArray(), resources: await db.resources.where("topicId").equals(topicId).toArray(), children: await db.topics.where("parentId").equals(topicId).toArray() }; }, [topicId]); useEffect(() => { if (topicId) void recordOpen(topicId); }, [topicId]); if (!data) return <div className="page-loading">Opening topic…</div>; if (!data.topic) return <section className="page"><h1>Topic not found</h1><Link to="/explorer">Back to explorer</Link></section>; const { topic } = data; return <section className="page topic-page"><Link className="back-link" to="/explorer">← Learning paths</Link><header className="topic-header"><div><p className="eyebrow">{data.path?.title}</p><input className="topic-title-input" aria-label="Topic title" value={topic.title} onChange={(event) => db.topics.update(topic.id, { title: event.target.value, updatedAt: Date.now() })}/><textarea className="topic-description" aria-label="Topic description" placeholder="Add a concise description…" value={topic.description} onChange={(event) => db.topics.update(topic.id, { description: event.target.value, updatedAt: Date.now() })}/></div><div className="topic-controls"><select aria-label="Learning status" value={topic.status} onChange={(event) => db.topics.update(topic.id, { status: event.target.value as typeof topic.status, updatedAt: Date.now() })}>{STATUSES.map((status) => <option value={status} key={status}>{statusLabel(status)}</option>)}</select><button className={`revision-toggle ${topic.needsRevision ? "active" : ""}`} onClick={() => db.topics.update(topic.id, { needsRevision: !topic.needsRevision, updatedAt: Date.now() })}>↻ {topic.needsRevision ? "Revision queued" : "Mark for revision"}</button></div></header><div className="topic-grid"><section className="topic-main"><Notes key={`${topic.id}-${data.note?.updatedAt ?? "empty"}`} topicId={topic.id} markdown={data.note?.markdown ?? ""}/><Snippets topicId={topic.id} snippets={data.snippets ?? []}/></section><aside className="topic-side"><Children topicId={topic.id} children={data.children ?? []}/><Resources topicId={topic.id} resources={data.resources ?? []}/></aside></div></section>; }
-function Notes({ topicId, markdown }: { topicId: string; markdown: string }) { const [value, setValue] = useState(markdown); const save = async () => { const note = await db.notes.where("topicId").equals(topicId).first(); const record = { topicId, markdown: value, updatedAt: Date.now() }; if (note) await db.notes.update(note.id, record); else await db.notes.add({ id: uid(), ...record }); }; return <section className="workspace-card"><div className="workspace-title"><div><FileText size={17}/><h2>Notes</h2></div><button className="button ghost small" onClick={save}><Save size={14}/> Save note</button></div><div className="markdown-split"><textarea value={value} onChange={(event) => setValue(event.target.value)} onBlur={save} placeholder="# Write your learning notes\n\nUse Markdown to capture concepts, examples, and questions."/><article className="markdown-preview"><ReactMarkdown>{value || "_Your live Markdown preview appears here._"}</ReactMarkdown></article></div></section>; }
-function Snippets({ topicId, snippets }: { topicId: string; snippets: { id: string; filename: string; language: string; code: string }[] }) { const [active, setActive] = useState<string | null>(snippets[0]?.id ?? null); const current = snippets.find((snippet) => snippet.id === active) ?? snippets[0]; const add = async () => { const item = { id: uid(), topicId, filename: `snippet-${snippets.length + 1}.ts`, language: "typescript", code: "// Write an example here\n" , updatedAt: Date.now() }; await db.snippets.add(item); setActive(item.id); }; return <section className="workspace-card"><div className="workspace-title"><div><FileCode2 size={17}/><h2>Code snippets</h2></div><button className="button ghost small" onClick={add}><Plus size={14}/> Add snippet</button></div>{snippets.length ? <div className="snippet-workspace"><div className="snippet-tabs">{snippets.map((snippet) => <button key={snippet.id} className={snippet.id === current?.id ? "active" : ""} onClick={() => setActive(snippet.id)}>{snippet.filename}</button>)}</div>{current && <SnippetEditor key={current.id} snippet={current}/>}</div> : <div className="empty-inline">No snippets yet. Add an executable thought or reference implementation.</div>}</section>; }
-function SnippetEditor({ snippet }: { snippet: { id: string; filename: string; language: string; code: string } }) { const [name, setName] = useState(snippet.filename); const [language, setLanguage] = useState(snippet.language); const [code, setCode] = useState(snippet.code); const update = async () => db.snippets.update(snippet.id, { filename: name, language, code, updatedAt: Date.now() }); return <div className="editor-wrap"><div className="snippet-meta"><input value={name} onChange={(event) => setName(event.target.value)} onBlur={update}/><select value={language} onChange={(event) => { setLanguage(event.target.value); void db.snippets.update(snippet.id, { language: event.target.value }); }}><option>typescript</option><option>javascript</option><option>tsx</option><option>css</option><option>html</option><option>json</option></select><button className="icon-button" onClick={() => db.snippets.delete(snippet.id)} aria-label="Delete snippet"><Trash2 size={15}/></button></div><Suspense fallback={<div className="editor-fallback">Loading editor…</div>}><Monaco theme="vs-dark" height="300px" language={language} value={code} onChange={(value) => setCode(value ?? "")} onMount={() => undefined} onValidate={() => undefined} options={{ minimap: { enabled: false }, fontSize: 13 }} /></Suspense><button className="button ghost small save-code" onClick={update}><Save size={14}/> Save code</button></div>; }
-function Children({ topicId, children }: { topicId: string; children: { id: string; title: string }[] }) { const [title, setTitle] = useState(""); const add = async (event: React.FormEvent) => { event.preventDefault(); if (!title.trim()) return; const parent = await db.topics.get(topicId); if (!parent) return; await db.topics.add({ id: uid(), learningPathId: parent.learningPathId, parentId: topicId, title: title.trim(), description: "", order: children.length, status: "not_started", needsRevision: false, createdAt: Date.now(), updatedAt: Date.now() }); setTitle(""); }; return <section className="workspace-card"><div className="workspace-title"><div><FolderPlus size={17}/><h2>Child topics</h2></div></div>{children.map((child) => <Link className="side-link" to={`/topics/${child.id}`} key={child.id}>{child.title} <span>→</span></Link>)}<form className="mini-form" onSubmit={add}><input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Add child topic"/><button aria-label="Add child topic"><Plus size={15}/></button></form></section>; }
-function Resources({ topicId, resources }: { topicId: string; resources: { id: string; title: string; type: ResourceType; url: string }[] }) { const [editing, setEditing] = useState(false); const [title, setTitle] = useState(""); const [url, setUrl] = useState(""); const [type, setType] = useState<ResourceType>("Documentation"); const add = async (event: React.FormEvent) => { event.preventDefault(); if (!title.trim() || !url.trim()) return; await db.resources.add({ id: uid(), topicId, title: title.trim(), type, url: url.trim() }); setTitle(""); setUrl(""); setEditing(false); }; return <section className="workspace-card"><div className="workspace-title"><div><ExternalLink size={17}/><h2>Resources</h2></div><button className="icon-button" aria-label="Add resource" onClick={() => setEditing(!editing)}><Plus size={16}/></button></div>{resources.map((resource) => <div className="resource-row" key={resource.id}><a href={resource.url} target="_blank" rel="noreferrer"><span>{resource.type}</span>{resource.title}<ExternalLink size={12}/></a><button className="icon-button" onClick={() => db.resources.delete(resource.id)} aria-label="Delete resource"><Trash2 size={13}/></button></div>)}{editing && <form className="resource-form" onSubmit={add}><input placeholder="Resource title" value={title} onChange={(event) => setTitle(event.target.value)}/><input placeholder="https://…" type="url" value={url} onChange={(event) => setUrl(event.target.value)}/><select value={type} onChange={(event) => setType(event.target.value as ResourceType)}>{["Documentation","Article","Video","Reference"].map((item) => <option key={item}>{item}</option>)}</select><button className="button primary small">Save resource</button></form>}</section>; }
+import { lazy, Suspense, useEffect, useState } from 'react';
+import { ExternalLink, FileCode2, FileText, FolderPlus, Plus, Save, Trash2 } from 'lucide-react';
+import { Link, useParams } from 'react-router-dom';
+import { useLiveQuery } from 'dexie-react-hooks';
+import ReactMarkdown from 'react-markdown';
+import { db, recordOpen } from '../../db/database';
+import { STATUSES, statusLabel, type ResourceType, uid } from '../../models/types';
+import { progressOf } from '../../utils/progress';
+
+const Monaco = lazy(() => import('@monaco-editor/react'));
+
+export default function TopicDetail() {
+  const { topicId } = useParams();
+  const data = useLiveQuery(async () => {
+    if (!topicId) return undefined;
+    const topic = await db.topics.get(topicId);
+    if (!topic) return { topic: undefined };
+    const pathTopics = await db.topics
+      .where('learningPathId')
+      .equals(topic.learningPathId)
+      .toArray();
+    return {
+      topic,
+      path: await db.learningPaths.get(topic.learningPathId),
+      pathProgress: progressOf(pathTopics),
+      note: await db.notes.where('topicId').equals(topicId).first(),
+      snippets: await db.snippets.where('topicId').equals(topicId).toArray(),
+      resources: await db.resources.where('topicId').equals(topicId).toArray(),
+      children: await db.topics.where('parentId').equals(topicId).toArray(),
+    };
+  }, [topicId]);
+  useEffect(() => {
+    if (topicId) void recordOpen(topicId);
+  }, [topicId]);
+  if (!data) return <div className="page-loading">Opening topic…</div>;
+  if (!data.topic)
+    return (
+      <section className="page">
+        <h1>Topic not found</h1>
+        <Link to="/explorer">Back to explorer</Link>
+      </section>
+    );
+  const { topic } = data;
+  return (
+    <section className="page topic-page">
+      <Link className="back-link" to="/explorer">
+        ← Learning paths
+      </Link>
+      <header className="topic-header">
+        <div>
+          <div className="topic-path-progress">
+            <span className="eyebrow">{data.path?.title}</span>
+            <div className="path-progress-tracker">
+              <div className="mini-bar">
+                <span
+                  style={{
+                    width: `${data.pathProgress}%`,
+                    background: data.path?.color || 'var(--accent)',
+                    boxShadow: `0 0 8px ${data.path?.color || 'var(--accent)'}4c`,
+                  }}
+                />
+              </div>
+              <span>{data.pathProgress}% complete</span>
+            </div>
+          </div>
+          <input
+            className="topic-title-input"
+            aria-label="Topic title"
+            value={topic.title}
+            onChange={(event) =>
+              db.topics.update(topic.id, { title: event.target.value, updatedAt: Date.now() })
+            }
+          />
+          <textarea
+            className="topic-description"
+            aria-label="Topic description"
+            placeholder="Add a concise description…"
+            value={topic.description}
+            onChange={(event) =>
+              db.topics.update(topic.id, { description: event.target.value, updatedAt: Date.now() })
+            }
+          />
+        </div>
+        <div className="topic-controls">
+          <select
+            aria-label="Learning status"
+            value={topic.status}
+            onChange={(event) =>
+              db.topics.update(topic.id, {
+                status: event.target.value as typeof topic.status,
+                updatedAt: Date.now(),
+              })
+            }
+          >
+            {STATUSES.map((status) => (
+              <option value={status} key={status}>
+                {statusLabel(status)}
+              </option>
+            ))}
+          </select>
+          <button
+            className={`revision-toggle ${topic.needsRevision ? 'active' : ''}`}
+            onClick={() =>
+              db.topics.update(topic.id, {
+                needsRevision: !topic.needsRevision,
+                updatedAt: Date.now(),
+              })
+            }
+          >
+            ↻ {topic.needsRevision ? 'Revision queued' : 'Mark for revision'}
+          </button>
+        </div>
+      </header>
+      <div className="topic-grid">
+        <section className="topic-main">
+          <Notes
+            key={`${topic.id}-${data.note?.updatedAt ?? 'empty'}`}
+            topicId={topic.id}
+            markdown={data.note?.markdown ?? ''}
+          />
+          <Snippets topicId={topic.id} snippets={data.snippets ?? []} />
+        </section>
+        <aside className="topic-side">
+          <Children topicId={topic.id} children={data.children ?? []} />
+          <Resources topicId={topic.id} resources={data.resources ?? []} />
+        </aside>
+      </div>
+    </section>
+  );
+}
+function Notes({ topicId, markdown }: { topicId: string; markdown: string }) {
+  const [value, setValue] = useState(markdown);
+  const save = async () => {
+    const note = await db.notes.where('topicId').equals(topicId).first();
+    const record = { topicId, markdown: value, updatedAt: Date.now() };
+    if (note) await db.notes.update(note.id, record);
+    else await db.notes.add({ id: uid(), ...record });
+  };
+  return (
+    <section className="workspace-card">
+      <div className="workspace-title">
+        <div>
+          <FileText size={17} />
+          <h2>Notes</h2>
+        </div>
+        <button className="button ghost small" onClick={save}>
+          <Save size={14} /> Save note
+        </button>
+      </div>
+      <div className="markdown-split">
+        <textarea
+          value={value}
+          onChange={(event) => setValue(event.target.value)}
+          onBlur={save}
+          placeholder="# Write your learning notes\n\nUse Markdown to capture concepts, examples, and questions."
+        />
+        <article className="markdown-preview">
+          <ReactMarkdown>{value || '_Your live Markdown preview appears here._'}</ReactMarkdown>
+        </article>
+      </div>
+    </section>
+  );
+}
+function Snippets({
+  topicId,
+  snippets,
+}: {
+  topicId: string;
+  snippets: { id: string; filename: string; language: string; code: string }[];
+}) {
+  const [active, setActive] = useState<string | null>(snippets[0]?.id ?? null);
+  const current = snippets.find((snippet) => snippet.id === active) ?? snippets[0];
+  const add = async () => {
+    const item = {
+      id: uid(),
+      topicId,
+      filename: `snippet-${snippets.length + 1}.ts`,
+      language: 'typescript',
+      code: '// Write an example here\n',
+      updatedAt: Date.now(),
+    };
+    await db.snippets.add(item);
+    setActive(item.id);
+  };
+  return (
+    <section className="workspace-card">
+      <div className="workspace-title">
+        <div>
+          <FileCode2 size={17} />
+          <h2>Code snippets</h2>
+        </div>
+        <button className="button ghost small" onClick={add}>
+          <Plus size={14} /> Add snippet
+        </button>
+      </div>
+      {snippets.length ? (
+        <div className="snippet-workspace">
+          <div className="snippet-tabs">
+            {snippets.map((snippet) => (
+              <button
+                key={snippet.id}
+                className={snippet.id === current?.id ? 'active' : ''}
+                onClick={() => setActive(snippet.id)}
+              >
+                {snippet.filename}
+              </button>
+            ))}
+          </div>
+          {current && <SnippetEditor key={current.id} snippet={current} />}
+        </div>
+      ) : (
+        <div className="empty-inline">
+          No snippets yet. Add an executable thought or reference implementation.
+        </div>
+      )}
+    </section>
+  );
+}
+function SnippetEditor({
+  snippet,
+}: {
+  snippet: { id: string; filename: string; language: string; code: string };
+}) {
+  const [name, setName] = useState(snippet.filename);
+  const [language, setLanguage] = useState(snippet.language);
+  const [code, setCode] = useState(snippet.code);
+  const update = async () =>
+    db.snippets.update(snippet.id, { filename: name, language, code, updatedAt: Date.now() });
+  return (
+    <div className="editor-wrap">
+      <div className="snippet-meta">
+        <input value={name} onChange={(event) => setName(event.target.value)} onBlur={update} />
+        <select
+          value={language}
+          onChange={(event) => {
+            setLanguage(event.target.value);
+            void db.snippets.update(snippet.id, { language: event.target.value });
+          }}
+        >
+          <option>typescript</option>
+          <option>javascript</option>
+          <option>tsx</option>
+          <option>css</option>
+          <option>html</option>
+          <option>json</option>
+        </select>
+        <button
+          className="icon-button"
+          onClick={() => db.snippets.delete(snippet.id)}
+          aria-label="Delete snippet"
+        >
+          <Trash2 size={15} />
+        </button>
+      </div>
+      <Suspense fallback={<div className="editor-fallback">Loading editor…</div>}>
+        <Monaco
+          theme="vs-dark"
+          height="300px"
+          language={language}
+          value={code}
+          onChange={(value) => setCode(value ?? '')}
+          onMount={() => undefined}
+          onValidate={() => undefined}
+          options={{ minimap: { enabled: false }, fontSize: 13 }}
+        />
+      </Suspense>
+      <button className="button ghost small save-code" onClick={update}>
+        <Save size={14} /> Save code
+      </button>
+    </div>
+  );
+}
+function Children({
+  topicId,
+  children,
+}: {
+  topicId: string;
+  children: { id: string; title: string }[];
+}) {
+  const [title, setTitle] = useState('');
+  const add = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!title.trim()) return;
+    const parent = await db.topics.get(topicId);
+    if (!parent) return;
+    await db.topics.add({
+      id: uid(),
+      learningPathId: parent.learningPathId,
+      parentId: topicId,
+      title: title.trim(),
+      description: '',
+      order: children.length,
+      status: 'not_started',
+      needsRevision: false,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+    setTitle('');
+  };
+  return (
+    <section className="workspace-card">
+      <div className="workspace-title">
+        <div>
+          <FolderPlus size={17} />
+          <h2>Child topics</h2>
+        </div>
+      </div>
+      {children.map((child) => (
+        <Link className="side-link" to={`/topics/${child.id}`} key={child.id}>
+          {child.title} <span>→</span>
+        </Link>
+      ))}
+      <form className="mini-form" onSubmit={add}>
+        <input
+          value={title}
+          onChange={(event) => setTitle(event.target.value)}
+          placeholder="Add child topic"
+        />
+        <button aria-label="Add child topic">
+          <Plus size={15} />
+        </button>
+      </form>
+    </section>
+  );
+}
+function Resources({
+  topicId,
+  resources,
+}: {
+  topicId: string;
+  resources: { id: string; title: string; type: ResourceType; url: string }[];
+}) {
+  const [editing, setEditing] = useState(false);
+  const [title, setTitle] = useState('');
+  const [url, setUrl] = useState('');
+  const [type, setType] = useState<ResourceType>('Documentation');
+  const add = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!title.trim() || !url.trim()) return;
+    await db.resources.add({ id: uid(), topicId, title: title.trim(), type, url: url.trim() });
+    setTitle('');
+    setUrl('');
+    setEditing(false);
+  };
+  return (
+    <section className="workspace-card">
+      <div className="workspace-title">
+        <div>
+          <ExternalLink size={17} />
+          <h2>Resources</h2>
+        </div>
+        <button
+          className="icon-button"
+          aria-label="Add resource"
+          onClick={() => setEditing(!editing)}
+        >
+          <Plus size={16} />
+        </button>
+      </div>
+      {resources.map((resource) => (
+        <div className="resource-row" key={resource.id}>
+          <a href={resource.url} target="_blank" rel="noreferrer">
+            <span>{resource.type}</span>
+            {resource.title}
+            <ExternalLink size={12} />
+          </a>
+          <button
+            className="icon-button"
+            onClick={() => db.resources.delete(resource.id)}
+            aria-label="Delete resource"
+          >
+            <Trash2 size={13} />
+          </button>
+        </div>
+      ))}
+      {editing && (
+        <form className="resource-form" onSubmit={add}>
+          <input
+            placeholder="Resource title"
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+          />
+          <input
+            placeholder="https://…"
+            type="url"
+            value={url}
+            onChange={(event) => setUrl(event.target.value)}
+          />
+          <select value={type} onChange={(event) => setType(event.target.value as ResourceType)}>
+            {['Documentation', 'Article', 'Video', 'Reference'].map((item) => (
+              <option key={item}>{item}</option>
+            ))}
+          </select>
+          <button className="button primary small">Save resource</button>
+        </form>
+      )}
+    </section>
+  );
+}

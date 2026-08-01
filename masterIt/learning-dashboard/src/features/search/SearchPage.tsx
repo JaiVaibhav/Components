@@ -1,7 +1,101 @@
-import { Search, X } from "lucide-react";
-import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import { useLiveQuery } from "dexie-react-hooks";
-import { db } from "../../db/database";
+import { Search, X } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../../db/database';
 type Result = { topicId: string; title: string; detail: string; kind: string };
-export default function SearchPage() { const [query, setQuery] = useState(""); const data = useLiveQuery(async () => ({ topics: await db.topics.toArray(), notes: await db.notes.toArray(), snippets: await db.snippets.toArray(), resources: await db.resources.toArray() })); const results = useMemo<Result[]>(() => { if (!data || query.trim().length < 2) return []; const needle = query.toLowerCase(); const topicTitle = new Map(data.topics.map((topic) => [topic.id, topic.title])); const found = new Map<string, Result>(); data.topics.filter((topic) => `${topic.title} ${topic.description}`.toLowerCase().includes(needle)).forEach((topic) => found.set(`topic-${topic.id}`, { topicId: topic.id, title: topic.title, detail: "Topic", kind: "Topic" })); data.notes.filter((note) => note.markdown.toLowerCase().includes(needle)).forEach((note) => found.set(`note-${note.topicId}`, { topicId: note.topicId, title: topicTitle.get(note.topicId) ?? "Untitled topic", detail: "Match in notes", kind: "Note" })); data.snippets.filter((snippet) => `${snippet.filename} ${snippet.code}`.toLowerCase().includes(needle)).forEach((snippet) => found.set(`snippet-${snippet.id}`, { topicId: snippet.topicId, title: topicTitle.get(snippet.topicId) ?? "Untitled topic", detail: `Snippet: ${snippet.filename}`, kind: "Code" })); data.resources.filter((resource) => `${resource.title} ${resource.url}`.toLowerCase().includes(needle)).forEach((resource) => found.set(`resource-${resource.id}`, { topicId: resource.topicId, title: topicTitle.get(resource.topicId) ?? "Untitled topic", detail: `Resource: ${resource.title}`, kind: "Resource" })); return [...found.values()].slice(0, 30); }, [data, query]); return <section className="page search-page"><p className="eyebrow">KNOWLEDGE SEARCH</p><h1>Find anything.</h1><div className="big-search"><Search size={21}/><input autoFocus placeholder="Search topics, notes, snippets, and resources…" value={query} onChange={(event) => setQuery(event.target.value)}/>{query && <button aria-label="Clear search" onClick={() => setQuery("")}><X size={18}/></button>}</div>{query.length < 2 ? <p className="search-hint">Start typing to search your local learning workspace.</p> : <div className="search-results"><p>{results.length} result{results.length === 1 ? "" : "s"}</p>{results.map((result, index) => <Link to={`/topics/${result.topicId}`} key={`${result.kind}-${index}`}><span>{result.kind}</span><div><strong>{result.title}</strong><small>{result.detail}</small></div><b>↗</b></Link>)}</div>}</section>; }
+export default function SearchPage() {
+  const [query, setQuery] = useState('');
+  const data = useLiveQuery(async () => ({
+    topics: await db.topics.toArray(),
+    notes: await db.notes.toArray(),
+    snippets: await db.snippets.toArray(),
+    resources: await db.resources.toArray(),
+  }));
+  const results = useMemo<Result[]>(() => {
+    if (!data || query.trim().length < 2) return [];
+    const needle = query.toLowerCase();
+    const topicTitle = new Map(data.topics.map((topic) => [topic.id, topic.title]));
+    const found = new Map<string, Result>();
+    data.topics
+      .filter((topic) => `${topic.title} ${topic.description}`.toLowerCase().includes(needle))
+      .forEach((topic) =>
+        found.set(`topic-${topic.id}`, {
+          topicId: topic.id,
+          title: topic.title,
+          detail: 'Topic',
+          kind: 'Topic',
+        })
+      );
+    data.notes
+      .filter((note) => note.markdown.toLowerCase().includes(needle))
+      .forEach((note) =>
+        found.set(`note-${note.topicId}`, {
+          topicId: note.topicId,
+          title: topicTitle.get(note.topicId) ?? 'Untitled topic',
+          detail: 'Match in notes',
+          kind: 'Note',
+        })
+      );
+    data.snippets
+      .filter((snippet) => `${snippet.filename} ${snippet.code}`.toLowerCase().includes(needle))
+      .forEach((snippet) =>
+        found.set(`snippet-${snippet.id}`, {
+          topicId: snippet.topicId,
+          title: topicTitle.get(snippet.topicId) ?? 'Untitled topic',
+          detail: `Snippet: ${snippet.filename}`,
+          kind: 'Code',
+        })
+      );
+    data.resources
+      .filter((resource) => `${resource.title} ${resource.url}`.toLowerCase().includes(needle))
+      .forEach((resource) =>
+        found.set(`resource-${resource.id}`, {
+          topicId: resource.topicId,
+          title: topicTitle.get(resource.topicId) ?? 'Untitled topic',
+          detail: `Resource: ${resource.title}`,
+          kind: 'Resource',
+        })
+      );
+    return [...found.values()].slice(0, 30);
+  }, [data, query]);
+  return (
+    <section className="page search-page">
+      <p className="eyebrow">KNOWLEDGE SEARCH</p>
+      <h1>Find anything.</h1>
+      <div className="big-search">
+        <Search size={21} />
+        <input
+          autoFocus
+          placeholder="Search topics, notes, snippets, and resources…"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+        />
+        {query && (
+          <button aria-label="Clear search" onClick={() => setQuery('')}>
+            <X size={18} />
+          </button>
+        )}
+      </div>
+      {query.length < 2 ? (
+        <p className="search-hint">Start typing to search your local learning workspace.</p>
+      ) : (
+        <div className="search-results">
+          <p>
+            {results.length} result{results.length === 1 ? '' : 's'}
+          </p>
+          {results.map((result, index) => (
+            <Link to={`/topics/${result.topicId}`} key={`${result.kind}-${index}`}>
+              <span>{result.kind}</span>
+              <div>
+                <strong>{result.title}</strong>
+                <small>{result.detail}</small>
+              </div>
+              <b>↗</b>
+            </Link>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
