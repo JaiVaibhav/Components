@@ -9,6 +9,7 @@ import type {
   Settings,
   Topic,
 } from '../models/types';
+import { rawNotes, rawResources, rawSnippets, rawTopics } from './frontendIntermediateData';
 
 class LearningDatabase extends Dexie {
   learningPaths!: Table<LearningPath, string>;
@@ -173,4 +174,68 @@ export async function recordOpen(topicId: string) {
   await db.recentTopics.put({ topicId, openedAt: Date.now() });
   const overflow = (await db.recentTopics.orderBy('openedAt').reverse().toArray()).slice(12);
   await Promise.all(overflow.map((item) => db.recentTopics.delete(item.topicId)));
+}
+
+// Seeder migration for Frontend Intermediate learning path
+if (typeof window !== 'undefined') {
+  (async () => {
+    try {
+      let pathId = '';
+      const targetPaths = await db.learningPaths
+        .where('title')
+        .equalsIgnoreCase('Frontend Intermediate')
+        .toArray();
+
+      if (targetPaths.length > 0) {
+        pathId = targetPaths[0].id;
+      } else {
+        pathId = 'frontend-intermediate';
+        await db.learningPaths.add({
+          id: pathId,
+          title: 'Frontend Intermediate',
+          description: 'Intermediate HTML, CSS, TypeScript, and Networking for Frontend Engineers.',
+          icon: 'Layers',
+          color: '#38bdf8',
+          targetRoles: ['Frontend Engineer', 'Full Stack Engineer'],
+          minimumLevel: 'Fresher',
+          maximumLevel: 'Senior',
+          createdAt: Date.now(),
+        });
+      }
+
+      const count = await db.topics.where('learningPathId').equals(pathId).count();
+      if (count === 0) {
+        console.log('Seeding topics for Frontend Intermediate...');
+
+        // Map all topics to use the correct learningPathId and set timestamps
+        const topics = rawTopics.map((topic) => ({
+          ...topic,
+          learningPathId: pathId,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        }));
+
+        const notes = rawNotes.map((note) => ({
+          ...note,
+          updatedAt: Date.now(),
+        }));
+
+        const snippets = rawSnippets.map((snippet) => ({
+          ...snippet,
+          updatedAt: Date.now(),
+        }));
+
+        await db.transaction('rw', [db.topics, db.notes, db.snippets, db.resources], async () => {
+          await db.topics.bulkAdd(topics);
+          await db.notes.bulkAdd(notes);
+          await db.snippets.bulkAdd(snippets);
+          await db.resources.bulkAdd(rawResources);
+        });
+
+        console.log('Frontend Intermediate seeding complete!');
+      }
+    } catch (e) {
+      console.error('Frontend Intermediate seeding failed:', e);
+    }
+  })();
 }

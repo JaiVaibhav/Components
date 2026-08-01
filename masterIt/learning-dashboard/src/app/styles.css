@@ -870,8 +870,39 @@ select,
   gap: 14px;
 }
 .topic-main {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 14px;
+}
+.workspace-tabs {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid var(--border-soft);
+  padding-bottom: 8px;
+  margin-bottom: 4px;
+}
+.workspace-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.workspace-tab:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+.workspace-tab.active {
+  color: var(--accent);
+  background: var(--surface-3);
+  border-color: var(--border-soft);
 }
 .workspace-card {
   padding: 16px;

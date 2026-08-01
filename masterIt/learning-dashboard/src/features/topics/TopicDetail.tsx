@@ -11,6 +11,7 @@ const Monaco = lazy(() => import('@monaco-editor/react'));
 
 export default function TopicDetail() {
   const { topicId } = useParams();
+  const [activeTab, setActiveTab] = useState<'notes' | 'snippets'>('notes');
   const data = useLiveQuery(async () => {
     if (!topicId) return undefined;
     const topic = await db.topics.get(topicId);
@@ -113,12 +114,29 @@ export default function TopicDetail() {
       </header>
       <div className="topic-grid">
         <section className="topic-main">
-          <Notes
-            key={`${topic.id}-${data.note?.updatedAt ?? 'empty'}`}
-            topicId={topic.id}
-            markdown={data.note?.markdown ?? ''}
-          />
-          <Snippets topicId={topic.id} snippets={data.snippets ?? []} />
+          <div className="workspace-tabs">
+            <button
+              className={`workspace-tab ${activeTab === 'notes' ? 'active' : ''}`}
+              onClick={() => setActiveTab('notes')}
+            >
+              <FileText size={15} /> Notes
+            </button>
+            <button
+              className={`workspace-tab ${activeTab === 'snippets' ? 'active' : ''}`}
+              onClick={() => setActiveTab('snippets')}
+            >
+              <FileCode2 size={15} /> Code snippets ({data.snippets.length})
+            </button>
+          </div>
+          {activeTab === 'notes' ? (
+            <Notes
+              key={`${topic.id}-${data.note?.updatedAt ?? 'empty'}`}
+              topicId={topic.id}
+              markdown={data.note?.markdown ?? ''}
+            />
+          ) : (
+            <Snippets topicId={topic.id} snippets={data.snippets ?? []} />
+          )}
         </section>
         <aside className="topic-side">
           <Children topicId={topic.id} children={data.children ?? []} />

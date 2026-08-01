@@ -36,6 +36,7 @@ export default function Explorer() {
 
   const [showPathForm, setShowPathForm] = useState(false);
   const [selectedPathId, setSelectedPathId] = useState<string | null>(urlPathId);
+  const [expandedPathId, setExpandedPathId] = useState<string | null>(urlPathId);
   const [activePathIndex, setActivePathIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(!urlPathId);
   const helpDialogRef = useRef<HTMLDialogElement>(null);
@@ -45,7 +46,10 @@ export default function Explorer() {
     if (!data?.paths || !urlPathId) return;
     const idx = data.paths.findIndex((p) => p.id === urlPathId);
     if (idx !== -1) {
-      const timer = setTimeout(() => setActivePathIndex(idx), 0);
+      const timer = setTimeout(() => {
+        setActivePathIndex(idx);
+        setExpandedPathId(urlPathId);
+      }, 0);
       return () => clearTimeout(timer);
     }
   }, [urlPathId, data?.paths]);
@@ -63,6 +67,7 @@ export default function Explorer() {
 
   const handleSelectPath = (pathId: string) => {
     setSelectedPathId(pathId);
+    setExpandedPathId(pathId);
     setIsAutoPlaying(false);
     const idx = data.paths.findIndex((p) => p.id === pathId);
     if (idx !== -1) {
@@ -114,8 +119,9 @@ export default function Explorer() {
               isSelected={
                 selectedPathId === path.id || (!selectedPathId && currentActivePath?.id === path.id)
               }
+              open={expandedPathId === path.id}
               onSelect={handleSelectPath}
-              defaultOpen={path.id === urlPathId}
+              onToggle={() => setExpandedPathId(expandedPathId === path.id ? null : path.id)}
             />
           ))}
         </section>
@@ -305,16 +311,17 @@ function PathTree({
   path,
   topics,
   isSelected,
+  open,
   onSelect,
-  defaultOpen = false,
+  onToggle,
 }: {
   path: LearningPath;
   topics: Topic[];
   isSelected: boolean;
+  open: boolean;
   onSelect: (pathId: string) => void;
-  defaultOpen?: boolean;
+  onToggle: () => void;
 }) {
-  const [open, setOpen] = useState(defaultOpen);
   const [adding, setAdding] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const roots = topics.filter((topic) => !topic.parentId).sort((a, b) => a.order - b.order);
@@ -323,13 +330,6 @@ function PathTree({
   const learningCount = topics.filter((t) => t.status === 'learning').length;
   const readyCount = topics.filter((t) => t.status === 'interview_ready').length;
   const revisionCount = topics.filter((t) => t.needsRevision).length;
-
-  useEffect(() => {
-    if (defaultOpen) {
-      const timer = setTimeout(() => setOpen(true), 0);
-      return () => clearTimeout(timer);
-    }
-  }, [defaultOpen]);
 
   useEffect(() => {
     if (isSelected) {
@@ -379,10 +379,12 @@ function PathTree({
         onClick={(e) => {
           if ((e.target as HTMLElement).closest('.icon-button, .tree-actions')) return;
           onSelect(path.id);
-          setOpen(true);
+          if (!open) {
+            onToggle();
+          }
         }}
       >
-        <button className="icon-button" aria-label="Toggle path" onClick={() => setOpen(!open)}>
+        <button className="icon-button" aria-label="Toggle path" onClick={onToggle}>
           {open ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
         </button>
         <span className="tree-path-icon" style={{ background: path.color }}>
@@ -392,7 +394,9 @@ function PathTree({
           className="tree-title"
           onClick={() => {
             onSelect(path.id);
-            setOpen(true);
+            if (!open) {
+              onToggle();
+            }
           }}
         >
           {path.title}
@@ -402,7 +406,7 @@ function PathTree({
             className="icon-button"
             aria-label="Add topic"
             onClick={() => {
-              setOpen(true);
+              if (!open) onToggle();
               setAdding(true);
             }}
           >
