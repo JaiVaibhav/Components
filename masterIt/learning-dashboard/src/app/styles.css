@@ -479,6 +479,8 @@ a {
   flex-direction: column;
   height: fit-content;
   padding: 20px;
+  position: sticky;
+  top: 20px;
 }
 .tracker-header {
   display: flex;
