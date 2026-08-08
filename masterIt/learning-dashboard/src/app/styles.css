@@ -2101,17 +2101,18 @@ body {
     white-space: nowrap;
   }
   .tree-actions {
-    display: flex;
+    display: flex !important;
     margin-left: auto;
     margin-right: 0;
     border: 0;
     background: transparent;
   }
   .tree-actions .icon-button {
-    padding: 5px;
-  }
-  .tree-actions .icon-button:nth-child(n + 3) {
     display: none;
+  }
+  .tree-actions .mobile-menu-btn {
+    display: flex !important;
+    padding: 5px;
   }
   .tree-progress {
     margin-left: 4px;
@@ -2243,4 +2244,73 @@ body {
     BlinkMacSystemFont,
     'Segoe UI',
     sans-serif;
+}
+
+.mobile-menu-btn {
+  display: none;
+}
+
+/* Options dialog on mobile devices */
+.options-dialog {
+  border: 1px solid var(--border-soft);
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--text);
+  padding: 24px;
+  max-width: 320px;
+  width: 90%;
+  box-shadow: var(--shadow-lg);
+  margin: auto;
+}
+.options-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+}
+.options-dialog-header {
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 12px;
+}
+.options-dialog-header h3 {
+  margin: 4px 0 0 0;
+  font-size: 16px;
+  font-weight: 750;
+}
+.options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.option-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.option-row:hover:not(:disabled) {
+  background: var(--surface-3);
+  border-color: var(--muted);
+}
+.option-row:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.option-row.danger {
+  color: #f87171;
+  border-color: rgba(248, 113, 113, 0.2);
+  background: rgba(248, 113, 113, 0.05);
+}
+.option-row.danger:hover:not(:disabled) {
+  background: rgba(248, 113, 113, 0.1);
+  border-color: #f87171;
 }

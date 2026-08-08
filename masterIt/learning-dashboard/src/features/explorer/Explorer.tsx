@@ -436,6 +436,7 @@ function PathTree({
   onToggle: () => void;
 }) {
   const [adding, setAdding] = useState(false);
+  const [showPathActions, setShowPathActions] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const roots = topics.filter((topic) => !topic.parentId).sort((a, b) => a.order - b.order);
   const progress = progressOf(topics);
@@ -553,8 +554,45 @@ function PathTree({
           <button className="icon-button" aria-label="Delete path" onClick={removePath}>
             <Trash2 size={14} />
           </button>
+          <button
+            className="icon-button mobile-menu-btn"
+            aria-label="More path options"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowPathActions(true);
+            }}
+          >
+            <MoreHorizontal size={14} />
+          </button>
         </div>
       </div>
+      {showPathActions && (
+        <PathActionsModal
+          path={path}
+          onAdd={() => {
+            if (!open) onToggle();
+            setAdding(true);
+          }}
+          onRename={rename}
+          onExport={async () => {
+            try {
+              const pathBackup = await exportPath(path.id);
+              const url = URL.createObjectURL(
+                new Blob([JSON.stringify(pathBackup, null, 2)], { type: 'application/json' })
+              );
+              const anchor = document.createElement('a');
+              anchor.href = url;
+              anchor.download = `${path.title.toLowerCase().replace(/\s+/g, '-')}-export.json`;
+              anchor.click();
+              URL.revokeObjectURL(url);
+            } catch (err) {
+              alert(err instanceof Error ? err.message : 'Unable to export path.');
+            }
+          }}
+          onDelete={removePath}
+          close={() => setShowPathActions(false)}
+        />
+      )}
       {open && (
         <div className="tree-children">
           <div className="path-stats-bar">
@@ -598,6 +636,7 @@ function TopicNode({ topic, allTopics }: { topic: Topic; allTopics: Topic[] }) {
   const [open, setOpen] = useState(true);
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [showTopicActions, setShowTopicActions] = useState(false);
   const [name, setName] = useState(topic.title);
   const saveName = async () => {
     if (name.trim())
@@ -699,8 +738,32 @@ function TopicNode({ topic, allTopics }: { topic: Topic; allTopics: Topic[] }) {
           <button className="icon-button" aria-label="Delete topic" onClick={remove}>
             <Trash2 size={14} />
           </button>
+          <button
+            className="icon-button mobile-menu-btn"
+            aria-label="More topic options"
+            onClick={() => setShowTopicActions(true)}
+          >
+            <MoreHorizontal size={14} />
+          </button>
         </div>
       </div>
+      {showTopicActions && (
+        <TopicActionsModal
+          topic={topic}
+          siblings={siblings}
+          allTopics={allTopics}
+          onAdd={() => {
+            setOpen(true);
+            setAdding(true);
+          }}
+          onMove={move}
+          onIndent={indent}
+          onOutdent={outdent}
+          onRename={() => setEditing(true)}
+          onDelete={remove}
+          close={() => setShowTopicActions(false)}
+        />
+      )}
       {open && (
         <div className="tree-children">
           {children.map((child) => (
@@ -768,6 +831,157 @@ function collect(id: string, topics: Topic[]): string[] {
       .filter((topic) => topic.parentId === id)
       .flatMap((topic) => collect(topic.id, topics)),
   ];
+}
+
+function PathActionsModal({
+  path,
+  onAdd,
+  onRename,
+  onExport,
+  onDelete,
+  close,
+}: {
+  path: LearningPath;
+  onAdd: () => void;
+  onRename: () => void;
+  onExport: () => void;
+  onDelete: () => void;
+  close: () => void;
+}) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    dialogRef.current?.showModal();
+  }, []);
+
+  const handleAction = (action: () => void) => {
+    action();
+    dialogRef.current?.close();
+    close();
+  };
+
+  return (
+    <dialog ref={dialogRef} className="options-dialog" onClose={close}>
+      <div className="options-dialog-header">
+        <span className="card-label">PATH OPTIONS</span>
+        <h3>{path.title}</h3>
+      </div>
+      <div className="options-list">
+        <button className="option-row" onClick={() => handleAction(onAdd)}>
+          <Plus size={16} /> Add Topic
+        </button>
+        <button className="option-row" onClick={() => handleAction(onRename)}>
+          <Edit size={16} /> Rename Path
+        </button>
+        <button className="option-row" onClick={() => handleAction(onExport)}>
+          <Download size={16} /> Export Path JSON
+        </button>
+        <button className="option-row danger" onClick={() => handleAction(onDelete)}>
+          <Trash2 size={16} /> Delete Path
+        </button>
+      </div>
+      <div className="dialog-footer" style={{ marginTop: '16px' }}>
+        <button className="button ghost full-width" onClick={() => handleAction(() => {})}>
+          Cancel
+        </button>
+      </div>
+    </dialog>
+  );
+}
+
+function TopicActionsModal({
+  topic,
+  siblings,
+  allTopics,
+  onAdd,
+  onMove,
+  onIndent,
+  onOutdent,
+  onRename,
+  onDelete,
+  close,
+}: {
+  topic: Topic;
+  siblings: Topic[];
+  allTopics: Topic[];
+  onAdd: () => void;
+  onMove: (dir: -1 | 1) => void;
+  onIndent: () => void;
+  onOutdent: () => void;
+  onRename: () => void;
+  onDelete: () => void;
+  close: () => void;
+}) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    dialogRef.current?.showModal();
+  }, []);
+
+  const handleAction = (action: () => void) => {
+    action();
+    dialogRef.current?.close();
+    close();
+  };
+
+  const index = siblings.findIndex((item) => item.id === topic.id);
+  const canMoveUp = index > 0;
+  const canMoveDown = index !== -1 && index < siblings.length - 1;
+  const canIndent = index > 0;
+  const canOutdent = !!topic.parentId;
+
+  return (
+    <dialog ref={dialogRef} className="options-dialog" onClose={close}>
+      <div className="options-dialog-header">
+        <span className="card-label">TOPIC OPTIONS</span>
+        <h3>{topic.title}</h3>
+      </div>
+      <div className="options-list">
+        <button className="option-row" onClick={() => handleAction(onAdd)}>
+          <Plus size={16} /> Add Child Topic
+        </button>
+        <button
+          className="option-row"
+          disabled={!canMoveUp}
+          onClick={() => handleAction(() => onMove(-1))}
+        >
+          ↑ Move Up
+        </button>
+        <button
+          className="option-row"
+          disabled={!canMoveDown}
+          onClick={() => handleAction(() => onMove(1))}
+        >
+          ↓ Move Down
+        </button>
+        <button
+          className="option-row"
+          disabled={!canIndent}
+          onClick={() => handleAction(onIndent)}
+        >
+          <IndentIncrease size={16} /> Nest Topic
+        </button>
+        <button
+          className="option-row"
+          disabled={!canOutdent}
+          onClick={() => handleAction(onOutdent)}
+        >
+          <IndentDecrease size={16} /> Unnest Topic
+        </button>
+        <button className="option-row" onClick={() => handleAction(onRename)}>
+          <Edit size={16} /> Rename Topic
+        </button>
+        <button className="option-row danger" onClick={() => handleAction(onDelete)}>
+          <Trash2 size={16} /> Delete Topic
+        </button>
+      </div>
+      <div className="dialog-footer" style={{ marginTop: '16px' }}>
+        <button className="button ghost full-width" onClick={() => handleAction(() => {})}>
+          Cancel
+        </button>
+      </div>
+    </dialog>
+  );
 }
 
 function TemplatesDialog({
