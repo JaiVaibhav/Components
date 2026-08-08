@@ -10,13 +10,17 @@ import {
   Play,
   Pause,
   Edit,
+  Download,
+  BookOpen,
+  Upload,
 } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { db } from '../../db/database';
+import { db, exportPath, importPath } from '../../db/database';
 import { LEVELS, type LearningPath, type Topic, uid } from '../../models/types';
 import { progressOf } from '../../utils/progress';
+import { csTemplates } from '../../db/csTemplates';
 
 const roles = [
   'Frontend Engineer',
@@ -40,7 +44,39 @@ export default function Explorer() {
   const [activePathIndex, setActivePathIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(!urlPathId);
   const [expandedStatusId, setExpandedStatusId] = useState<string | null>(null);
+  const [showTemplates, setShowTemplates] = useState(false);
   const helpDialogRef = useRef<HTMLDialogElement>(null);
+  const importInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImportFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+      const fileText = await file.text();
+      const backupData = JSON.parse(fileText);
+      const newPathId = await importPath(backupData);
+      handleImportSuccess(newPathId);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Unable to import learning path.');
+    } finally {
+      if (importInputRef.current) {
+        importInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleImportSuccess = (newPathId: string) => {
+    setSelectedPathId(newPathId);
+    setExpandedPathId(newPathId);
+    setIsAutoPlaying(false);
+    setTimeout(async () => {
+      const paths = await db.learningPaths.toArray();
+      const idx = paths.findIndex((p) => p.id === newPathId);
+      if (idx !== -1) {
+        setActivePathIndex(idx);
+      }
+    }, 100);
+  };
 
   // Clear expanded status when changing active path/slide
   useEffect(() => {
@@ -104,11 +140,24 @@ export default function Explorer() {
           <button className="button-link" onClick={() => helpDialogRef.current?.showModal()}>
             Learn More
           </button>
+          <button className="button secondary" onClick={() => setShowTemplates(true)}>
+            <BookOpen size={16} /> Templates
+          </button>
+          <button className="button secondary" onClick={() => importInputRef.current?.click()}>
+            <Upload size={16} /> Import JSON
+          </button>
           <button className="button primary" onClick={() => setShowPathForm(true)}>
             <FolderPlus size={16} /> New path
           </button>
         </div>
       </div>
+      <input
+        type="file"
+        ref={importInputRef}
+        style={{ display: 'none' }}
+        accept=".json"
+        onChange={handleImportFile}
+      />
       {showPathForm && <PathForm close={() => setShowPathForm(false)} />}
 
       <div className="explorer-layout">
@@ -291,6 +340,13 @@ export default function Explorer() {
         </aside>
       </div>
 
+      {showTemplates && (
+        <TemplatesDialog
+          close={() => setShowTemplates(false)}
+          onImportSuccess={handleImportSuccess}
+        />
+      )}
+
       <dialog ref={helpDialogRef} className="help-dialog">
         <span className="card-label">HOW IT WORKS</span>
         <h2>Make it yours</h2>
@@ -468,6 +524,28 @@ function PathTree({
             }}
           >
             <Plus size={14} />
+          </button>
+          <button
+            className="icon-button"
+            aria-label="Export path"
+            onClick={async (e) => {
+              e.stopPropagation();
+              try {
+                const pathBackup = await exportPath(path.id);
+                const url = URL.createObjectURL(
+                  new Blob([JSON.stringify(pathBackup, null, 2)], { type: 'application/json' })
+                );
+                const anchor = document.createElement('a');
+                anchor.href = url;
+                anchor.download = `${path.title.toLowerCase().replace(/\s+/g, '-')}-export.json`;
+                anchor.click();
+                URL.revokeObjectURL(url);
+              } catch (err) {
+                alert(err instanceof Error ? err.message : 'Unable to export path.');
+              }
+            }}
+          >
+            <Download size={14} />
           </button>
           <button className="icon-button" aria-label="Rename path" onClick={rename}>
             <Edit size={14} />
@@ -690,4 +768,92 @@ function collect(id: string, topics: Topic[]): string[] {
       .filter((topic) => topic.parentId === id)
       .flatMap((topic) => collect(topic.id, topics)),
   ];
+}
+
+function TemplatesDialog({
+  close,
+  onImportSuccess,
+}: {
+  close: () => void;
+  onImportSuccess: (pathId: string) => void;
+}) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    dialogRef.current?.showModal();
+  }, []);
+
+  const handleClose = () => {
+    dialogRef.current?.close();
+    close();
+  };
+
+  const handleAddTemplate = async (template: any) => {
+    try {
+      const newPathId = await importPath(template);
+      onImportSuccess(newPathId);
+      handleClose();
+    } catch (err) {
+      alert('Failed to import template: ' + (err instanceof Error ? err.message : String(err)));
+    }
+  };
+
+  return (
+    <dialog ref={dialogRef} className="templates-dialog" onClose={close}>
+      <div className="templates-dialog-header">
+        <span className="card-label">TEMPLATES LIBRARY</span>
+        <h2>Computer Science Subjects</h2>
+        <p>Bootstrap your roadmap with pre-defined topics and structural subtopics.</p>
+      </div>
+      <div className="templates-grid">
+        {csTemplates.map((template) => {
+          const path = template.learningPath;
+          const rootTopics = template.topics.filter((t) => !t.parentId);
+          const totalTopics = template.topics.length;
+          return (
+            <article key={path.id} className="template-card">
+              <div className="template-card-header">
+                <span className="template-icon" style={{ background: path.color }}>
+                  {path.icon.slice(0, 1)}
+                </span>
+                <div>
+                  <h3>{path.title}</h3>
+                  <small>{path.targetRoles.join(' · ')}</small>
+                </div>
+              </div>
+              <p className="template-description">{path.description}</p>
+              <div className="template-meta">
+                <span>{totalTopics} topics</span>
+                <span>Level: {path.minimumLevel} - {path.maximumLevel}</span>
+              </div>
+              <div className="template-preview">
+                <strong>Includes:</strong>
+                <div className="template-tags">
+                  {rootTopics.slice(0, 5).map((t) => (
+                    <span key={t.id} className="template-tag">
+                      {t.title}
+                    </span>
+                  ))}
+                  {rootTopics.length > 5 && (
+                    <span className="template-tag more">+{rootTopics.length - 5} more</span>
+                  )}
+                </div>
+              </div>
+              <button
+                className="button primary full-width"
+                onClick={() => handleAddTemplate(template)}
+              >
+                Add to Workspace
+              </button>
+            </article>
+          );
+        })}
+      </div>
+      <div className="dialog-footer">
+        <button className="button ghost" onClick={handleClose}>
+          Close
+        </button>
+      </div>
+    </dialog>
+  );
 }

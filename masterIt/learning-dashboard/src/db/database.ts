@@ -170,6 +170,112 @@ export async function importBackup(value: unknown) {
     }
   );
 }
+
+export interface PathBackup {
+  version: 1;
+  type: 'learning-path';
+  learningPath: LearningPath;
+  topics: Topic[];
+  notes: Note[];
+  snippets: CodeSnippet[];
+  resources: Resource[];
+}
+
+export async function exportPath(pathId: string): Promise<PathBackup> {
+  const learningPath = await db.learningPaths.get(pathId);
+  if (!learningPath) throw new Error('Learning path not found.');
+  const topics = await db.topics.where('learningPathId').equals(pathId).toArray();
+  const topicIds = topics.map((t) => t.id);
+  const notes = topicIds.length ? await db.notes.where('topicId').anyOf(topicIds).toArray() : [];
+  const snippets = topicIds.length ? await db.snippets.where('topicId').anyOf(topicIds).toArray() : [];
+  const resources = topicIds.length ? await db.resources.where('topicId').anyOf(topicIds).toArray() : [];
+  return {
+    version: 1,
+    type: 'learning-path',
+    learningPath,
+    topics,
+    notes,
+    snippets,
+    resources,
+  };
+}
+
+export async function importPath(value: unknown): Promise<string> {
+  const data = value as Partial<PathBackup>;
+  if (
+    data.version !== 1 ||
+    data.type !== 'learning-path' ||
+    !data.learningPath ||
+    !Array.isArray(data.topics)
+  ) {
+    throw new Error('This is not a compatible Learning Path backup.');
+  }
+
+  // Clone path and topics to avoid mutating external references
+  const path = { ...data.learningPath };
+  let importedPathId = path.id;
+
+  // Resolve duplicate ID collision for learning path
+  const existingPath = await db.learningPaths.get(path.id);
+  if (existingPath) {
+    importedPathId = `${path.id}-imported-${Date.now()}`;
+    path.id = importedPathId;
+    path.title = `${path.title} (Imported)`;
+  }
+
+  // Resolve duplicate ID collisions for topics, notes, snippets, and resources
+  const idMap = new Map<string, string>();
+  for (const topic of data.topics) {
+    idMap.set(topic.id, crypto.randomUUID());
+  }
+
+  const topics: Topic[] = data.topics.map((t) => ({
+    ...t,
+    id: idMap.get(t.id)!,
+    learningPathId: importedPathId,
+    parentId: t.parentId ? (idMap.get(t.parentId) ?? t.parentId) : null,
+    createdAt: t.createdAt || Date.now(),
+    updatedAt: t.updatedAt || Date.now(),
+  }));
+
+  const notes: Note[] = (data.notes || [])
+    .filter((n) => idMap.has(n.topicId))
+    .map((n) => ({
+      ...n,
+      id: crypto.randomUUID(),
+      topicId: idMap.get(n.topicId)!,
+    }));
+
+  const snippets: CodeSnippet[] = (data.snippets || [])
+    .filter((s) => idMap.has(s.topicId))
+    .map((s) => ({
+      ...s,
+      id: crypto.randomUUID(),
+      topicId: idMap.get(s.topicId)!,
+    }));
+
+  const resources: Resource[] = (data.resources || [])
+    .filter((r) => idMap.has(r.topicId))
+    .map((r) => ({
+      ...r,
+      id: crypto.randomUUID(),
+      topicId: idMap.get(r.topicId)!,
+    }));
+
+  await db.transaction(
+    'rw',
+    [db.learningPaths, db.topics, db.notes, db.snippets, db.resources],
+    async () => {
+      await db.learningPaths.put(path);
+      await db.topics.bulkPut(topics);
+      if (notes.length) await db.notes.bulkPut(notes);
+      if (snippets.length) await db.snippets.bulkPut(snippets);
+      if (resources.length) await db.resources.bulkPut(resources);
+    }
+  );
+
+  return importedPathId;
+}
 export async function recordOpen(topicId: string) {
   await db.recentTopics.put({ topicId, openedAt: Date.now() });
   const overflow = (await db.recentTopics.orderBy('openedAt').reverse().toArray()).slice(12);
