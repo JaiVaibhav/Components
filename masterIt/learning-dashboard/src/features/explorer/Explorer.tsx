@@ -39,7 +39,13 @@ export default function Explorer() {
   const [expandedPathId, setExpandedPathId] = useState<string | null>(urlPathId);
   const [activePathIndex, setActivePathIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(!urlPathId);
+  const [expandedStatusId, setExpandedStatusId] = useState<string | null>(null);
   const helpDialogRef = useRef<HTMLDialogElement>(null);
+
+  // Clear expanded status when changing active path/slide
+  useEffect(() => {
+    setExpandedStatusId(null);
+  }, [activePathIndex]);
 
   // Sync active path index with initial query param
   useEffect(() => {
@@ -174,14 +180,38 @@ export default function Explorer() {
                       </div>
                       <div className="status-progress-list">
                         {statuses.map((status) => {
-                          const count =
+                          const matchingTopics =
                             status.id === 'revised'
-                              ? pathTopics.filter((t) => t.needsRevision).length
-                              : pathTopics.filter((t) => t.status === status.id).length;
+                              ? pathTopics.filter((t) => t.needsRevision)
+                              : pathTopics.filter((t) => t.status === status.id);
+                          const count = matchingTopics.length;
                           const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+                          const isClickable = count > 0;
+
+                          const handleToggle = () => {
+                            if (!isClickable) return;
+                            setIsAutoPlaying(false);
+                            setExpandedStatusId(expandedStatusId === status.id ? null : status.id);
+                          };
+
+                          const handleKeyDown = (e: React.KeyboardEvent) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              handleToggle();
+                            }
+                          };
 
                           return (
-                            <div key={status.id} className="status-progress-item">
+                            <div
+                              key={status.id}
+                              className={`status-progress-item${isClickable ? ' clickable' : ''}${
+                                expandedStatusId === status.id ? ' expanded' : ''
+                              }`}
+                              role={isClickable ? 'button' : undefined}
+                              tabIndex={isClickable ? 0 : undefined}
+                              onClick={handleToggle}
+                              onKeyDown={handleKeyDown}
+                            >
                               <div className="status-progress-header">
                                 <span className="status-name">
                                   <span className={`status-dot ${status.id}`} />
@@ -189,11 +219,37 @@ export default function Explorer() {
                                 </span>
                                 <span className="status-stats">
                                   {count} ({pct}%)
+                                  {isClickable && (
+                                    <span className="status-chevron">
+                                      {expandedStatusId === status.id ? (
+                                        <ChevronDown size={12} style={{ marginLeft: '4px' }} />
+                                      ) : (
+                                        <ChevronRight size={12} style={{ marginLeft: '4px' }} />
+                                      )}
+                                    </span>
+                                  )}
                                 </span>
                               </div>
                               <div className="status-progress-bar">
                                 <span className={status.id} style={{ width: `${pct}%` }} />
                               </div>
+                              {expandedStatusId === status.id && count > 0 && (
+                                <div
+                                  className="status-topics-list"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  {matchingTopics.map((topic) => (
+                                    <Link
+                                      key={topic.id}
+                                      to={`/topics/${topic.id}`}
+                                      className="status-topic-link"
+                                    >
+                                      <span>{topic.title}</span>
+                                      <span className="topic-link-arrow">→</span>
+                                    </Link>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                           );
                         })}
