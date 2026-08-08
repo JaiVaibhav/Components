@@ -595,7 +595,22 @@ a {
   background: var(--surface-3);
   border-radius: 6px;
   border: 1px solid var(--border);
+  max-height: 160px;
+  overflow-y: auto;
   animation: slideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.status-topics-list::-webkit-scrollbar {
+  width: 4px;
+}
+.status-topics-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.status-topics-list::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 2px;
+}
+.status-topics-list::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
 }
 @keyframes slideDown {
   from {
