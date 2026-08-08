@@ -123,7 +123,8 @@ export default function Explorer() {
               path={path}
               topics={data.topics.filter((topic) => topic.learningPathId === path.id)}
               isSelected={
-                selectedPathId === path.id || (!selectedPathId && currentActivePath?.id === path.id)
+                selectedPathId === path.id ||
+                (!isAutoPlaying && !selectedPathId && currentActivePath?.id === path.id)
               }
               open={expandedPathId === path.id}
               onSelect={handleSelectPath}
