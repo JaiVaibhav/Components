@@ -1,4 +1,4 @@
-import { ArrowRight, BookOpen, BrainCircuit, Clock3, RotateCcw } from 'lucide-react';
+import { ArrowRight, BookOpen, BrainCircuit, Clock3, RotateCcw, Award } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db/database';
@@ -30,6 +30,7 @@ export default function Dashboard() {
   const overall = progressOf(scope);
   const learning = scope.filter((topic) => topic.status === 'learning');
   const revision = scope.filter((topic) => topic.needsRevision);
+  const interviewReady = scope.filter((topic) => topic.status === 'interview_ready');
   const recent = data.recents
     .map((recent) => scope.find((topic) => topic.id === recent.topicId))
     .filter(Boolean)
@@ -64,6 +65,11 @@ export default function Dashboard() {
           <RotateCcw />
           <span>{revision.length}</span>
           <p>Need revision</p>
+        </article>
+        <article className="stat-card">
+          <Award />
+          <span>{interviewReady.length}</span>
+          <p>Interview ready</p>
         </article>
         <article className="stat-card">
           <BrainCircuit />
