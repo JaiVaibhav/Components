@@ -2897,3 +2897,54 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* AI custom learning path card styling */
+.ai-generator-card {
+  border: 1px solid rgba(236, 72, 153, 0.3) !important;
+  background: linear-gradient(180deg, var(--surface) 0%, rgba(236, 72, 153, 0.02) 100%) !important;
+  box-shadow: 0 4px 20px rgba(236, 72, 153, 0.05) !important;
+}
+.template-icon.ai-icon {
+  background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 16px !important;
+  color: #fff !important;
+}
+.ai-steps-list {
+  padding: 0;
+  margin: 6px 0 0;
+  list-style: none;
+  font-size: 11px;
+  color: var(--muted);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ai-steps-list li {
+  line-height: 1.4;
+}
+.ai-prompt-box {
+  margin-top: 12px;
+}
+.ai-json-input {
+  width: 100%;
+  height: 90px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px;
+  color: var(--text);
+  font-family: monospace;
+  font-size: 11px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  resize: none;
+  outline: none;
+  transition: all 0.2s ease;
+}
+.ai-json-input:focus {
+  border-color: #ec4899;
+}
+

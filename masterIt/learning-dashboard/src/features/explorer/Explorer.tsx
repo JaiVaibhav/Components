@@ -992,6 +992,8 @@ function TemplatesDialog({
   onImportSuccess: (pathId: string) => void;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const [pastedJson, setPastedJson] = useState('');
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     dialogRef.current?.showModal();
@@ -1000,6 +1002,68 @@ function TemplatesDialog({
   const handleClose = () => {
     dialogRef.current?.close();
     close();
+  };
+
+  const handleCopyPrompt = async () => {
+    const prompt = `You are an AI assistant designed to generate custom learning paths for a learning dashboard application.
+
+Your task is to generate a custom learning path in the exact JSON format specified below.
+
+### Output JSON Format:
+{
+  "version": 1,
+  "type": "learning-path",
+  "learningPath": {
+    "id": "react-basics", // unique string slug
+    "title": "React Basics",
+    "description": "Learn the core concepts of React.",
+    "icon": "Layers", // LucideIconName, e.g. Layers, Code2, Waypoints, Cpu, Database
+    "color": "#38bdf8", // Hex color
+    "targetRoles": ["Frontend Engineer", "Full Stack Engineer"],
+    "minimumLevel": "Fresher", // Fresher | Junior | Mid | Senior | Staff | Principal | Architect
+    "maximumLevel": "Senior",
+    "createdAt": 1723825800000 // current timestamp
+  },
+  "topics": [
+    {
+      "id": "react-components",
+      "learningPathId": "react-basics",
+      "parentId": null, // or parent topic id for hierarchical subtopics
+      "title": "Components & JSX",
+      "description": "Understand functional components and JSX rendering syntax.",
+      "order": 0, // order index (0, 1, 2, ...)
+      "status": "learning", // not_started | learning | practiced | revised | interview_ready
+      "needsRevision": false,
+      "createdAt": 1723825800000,
+      "updatedAt": 1723825800000
+    }
+  ],
+  "notes": [], // optional array of Note: { id, topicId, markdown, updatedAt }
+  "snippets": [], // optional array of CodeSnippet: { id, topicId, filename, language, code, updatedAt }
+  "resources": [] // optional array of Resource: { id, topicId, title, type, url }
+}
+
+Please generate a high-quality, comprehensive learning path for the following topic: [INSERT YOUR TOPIC HERE]. Provide ONLY the valid raw JSON object. Do not wrap it in markdown code blocks.`;
+
+    try {
+      await navigator.clipboard.writeText(prompt);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      alert('Unable to copy prompt. Please copy it manually.');
+    }
+  };
+
+  const handleImportPastedJson = async () => {
+    if (!pastedJson.trim()) return;
+    try {
+      const parsed = JSON.parse(pastedJson);
+      const newPathId = await importPath(parsed);
+      onImportSuccess(newPathId);
+      handleClose();
+    } catch (err) {
+      alert('Failed to import: ' + (err instanceof Error ? err.message : String(err)));
+    }
   };
 
   const handleAddTemplate = async (template: any) => {
@@ -1020,6 +1084,48 @@ function TemplatesDialog({
         <p>Bootstrap your roadmap with pre-defined topics and structural subtopics.</p>
       </div>
       <div className="templates-grid">
+        {/* Custom AI Roadmap Generator Card */}
+        <article className="template-card ai-generator-card">
+          <div className="template-card-header">
+            <span className="template-icon ai-icon">
+              ✨
+            </span>
+            <div>
+              <h3>AI Custom Roadmap</h3>
+              <small>Custom Discipline · Custom Level</small>
+            </div>
+          </div>
+          <p className="template-description">
+            Generate any custom learning path with an AI. Copy our schema prompt instructions, request an AI model to write the roadmap, and paste the JSON output below.
+          </p>
+          <div className="template-preview">
+            <strong>How it works:</strong>
+            <ul className="ai-steps-list">
+              <li>1. Click "Copy AI Prompt" to copy the JSON schema rules.</li>
+              <li>2. Ask any AI model to write your custom roadmap.</li>
+              <li>3. Paste the generated JSON below and import.</li>
+            </ul>
+          </div>
+          <div className="ai-prompt-box">
+            <button className="button secondary small full-width" onClick={handleCopyPrompt}>
+              {copied ? 'Copied to Clipboard!' : 'Copy AI Prompt'}
+            </button>
+          </div>
+          <textarea
+            className="ai-json-input"
+            placeholder="Paste generated JSON here..."
+            value={pastedJson}
+            onChange={(e) => setPastedJson(e.target.value)}
+          />
+          <button
+            className="button primary full-width"
+            onClick={handleImportPastedJson}
+            disabled={!pastedJson.trim()}
+          >
+            Import JSON Path
+          </button>
+        </article>
+
         {csTemplates.map((template) => {
           const path = template.learningPath;
           const rootTopics = template.topics.filter((t) => !t.parentId);
