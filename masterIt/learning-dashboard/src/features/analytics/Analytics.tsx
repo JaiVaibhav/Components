@@ -24,9 +24,9 @@ import {
   calculateReadinessMetrics,
   seedMockHistory,
   getRangeDates,
-  type AnalyticsSnapshot,
 } from '../../utils/analytics';
 import { leafTopics } from '../../utils/progress';
+import type { AnalyticsSnapshot, Topic } from '../../models/types';
 
 export default function Analytics() {
   const [timeRange, setTimeRange] = useState<'7' | '30' | '90' | 'all'>('30');
@@ -213,7 +213,7 @@ export default function Analytics() {
     const date = new Date(topic.updatedAt);
     const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     
-    let statusClean = topic.status.replaceAll('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+    let statusClean = topic.status.replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
     if (topic.needsRevision) statusClean += ' (Revision Needed)';
     
     return {
