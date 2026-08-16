@@ -8,8 +8,11 @@ import type {
   Resource,
   Settings,
   Topic,
+  AnalyticsSnapshot,
+  LearningActivity,
 } from '../models/types';
 import { rawNotes, rawResources, rawSnippets, rawTopics } from './frontendIntermediateData';
+import { leafTopics, progressOf } from '../utils/progress';
 
 class LearningDatabase extends Dexie {
   learningPaths!: Table<LearningPath, string>;
@@ -19,6 +22,9 @@ class LearningDatabase extends Dexie {
   resources!: Table<Resource, string>;
   recentTopics!: Table<RecentTopic, string>;
   settings!: Table<Settings, string>;
+  analyticsSnapshots!: Table<AnalyticsSnapshot, number>;
+  learningActivities!: Table<LearningActivity, number>;
+
   constructor() {
     super('learning-dashboard');
     this.version(1).stores({
@@ -30,7 +36,74 @@ class LearningDatabase extends Dexie {
       recentTopics: 'topicId, openedAt',
       settings: 'id',
     });
+    this.version(2).stores({
+      learningPaths: 'id, title, *targetRoles',
+      topics: 'id, learningPathId, parentId, status, needsRevision, order',
+      notes: 'id, topicId',
+      snippets: 'id, topicId, filename',
+      resources: 'id, topicId, type',
+      recentTopics: 'topicId, openedAt',
+      settings: 'id',
+      analyticsSnapshots: '++id, date, learningPathId, [date+learningPathId]',
+      learningActivities: '++id, date',
+    });
     this.on('populate', () => seed(this));
+
+    this.setupHooks();
+  }
+
+  private setupHooks() {
+    this.topics.hook('updating', (mods, primKey, obj, transaction) => {
+      if ('status' in mods && mods.status !== obj.status) {
+        transaction.on('complete', () => {
+          void recordActivity('topicsUpdated');
+          const newStatus = mods.status;
+          if (newStatus === 'practiced') {
+            void recordActivity('topicsPracticed');
+          } else if (newStatus === 'revised') {
+            void recordActivity('topicsRevised');
+          } else if (newStatus === 'interview_ready') {
+            void recordActivity('topicsCompleted');
+          }
+          void takeDailySnapshots();
+        });
+      }
+      if ('needsRevision' in mods && mods.needsRevision !== obj.needsRevision) {
+        transaction.on('complete', () => {
+          void recordActivity('topicsUpdated');
+          if (mods.needsRevision === false) {
+            void recordActivity('topicsRevised');
+          }
+          void takeDailySnapshots();
+        });
+      }
+    });
+
+    this.notes.hook('creating', (primKey, obj, transaction) => {
+      transaction.on('complete', () => {
+        void recordActivity('notesUpdated');
+        void takeDailySnapshots();
+      });
+    });
+    this.notes.hook('updating', (mods, primKey, obj, transaction) => {
+      transaction.on('complete', () => {
+        void recordActivity('notesUpdated');
+        void takeDailySnapshots();
+      });
+    });
+
+    this.snippets.hook('creating', (primKey, obj, transaction) => {
+      transaction.on('complete', () => {
+        void recordActivity('snippetsUpdated');
+        void takeDailySnapshots();
+      });
+    });
+    this.snippets.hook('updating', (mods, primKey, obj, transaction) => {
+      transaction.on('complete', () => {
+        void recordActivity('snippetsUpdated');
+        void takeDailySnapshots();
+      });
+    });
   }
 }
 export const db = new LearningDatabase();
@@ -343,5 +416,116 @@ if (typeof window !== 'undefined') {
     } catch (e) {
       console.error('Frontend Intermediate seeding failed:', e);
     }
+    try {
+      await takeDailySnapshots();
+    } catch (e) {
+      console.error('Initial daily snapshot failed:', e);
+    }
   })();
 }
+
+export async function recordActivity(
+  type:
+    | 'topicsUpdated'
+    | 'topicsPracticed'
+    | 'topicsRevised'
+    | 'topicsCompleted'
+    | 'notesUpdated'
+    | 'snippetsUpdated'
+) {
+  const todayStr = new Date().toISOString().slice(0, 10);
+  try {
+    await db.transaction('rw', db.learningActivities, async () => {
+      const existing = await db.learningActivities.where('date').equals(todayStr).first();
+      if (existing) {
+        const updates: Partial<LearningActivity> = {
+          [type]: (existing[type] || 0) + 1,
+        };
+        await db.learningActivities.update(existing.id!, updates);
+      } else {
+        const newActivity: LearningActivity = {
+          date: todayStr,
+          topicsUpdated: 0,
+          topicsPracticed: 0,
+          topicsRevised: 0,
+          topicsCompleted: 0,
+          notesUpdated: 0,
+          snippetsUpdated: 0,
+          [type]: 1,
+        };
+        await db.learningActivities.add(newActivity);
+      }
+    });
+  } catch (err) {
+    console.error('Error recording activity:', err);
+  }
+}
+
+export async function takeDailySnapshots() {
+  const todayStr = new Date().toISOString().slice(0, 10);
+  try {
+    const paths = await db.learningPaths.toArray();
+    const topics = await db.topics.toArray();
+
+    const calculateSnapshotForScope = (
+      scopeTopics: Topic[],
+      pathId: string
+    ): AnalyticsSnapshot => {
+      const leaves = leafTopics(scopeTopics);
+      const overallProgress = progressOf(scopeTopics);
+
+      const notStarted = leaves.filter((t) => t.status === 'not_started').length;
+      const learning = leaves.filter((t) => t.status === 'learning').length;
+      const practiced = leaves.filter((t) =>
+        ['practiced', 'revised', 'interview_ready'].includes(t.status)
+      ).length;
+      const revised = leaves.filter((t) =>
+        ['revised', 'interview_ready'].includes(t.status)
+      ).length;
+      const interviewReady = leaves.filter((t) => t.status === 'interview_ready').length;
+
+      const topicsInProgress = scopeTopics.filter((t) => t.status === 'learning').length;
+      const topicsNeedingRevision = scopeTopics.filter((t) => t.needsRevision).length;
+
+      return {
+        date: todayStr,
+        learningPathId: pathId,
+        overallProgress,
+        totalTopics: leaves.length,
+        notStarted,
+        learning,
+        practiced,
+        revised,
+        interviewReady,
+        topicsInProgress,
+        topicsNeedingRevision,
+        learningPathsCount: pathId === 'all' ? paths.length : 1,
+      };
+    };
+
+    const snapshots: AnalyticsSnapshot[] = [];
+    snapshots.push(calculateSnapshotForScope(topics, 'all'));
+
+    for (const path of paths) {
+      const pathTopics = topics.filter((t) => t.learningPathId === path.id);
+      snapshots.push(calculateSnapshotForScope(pathTopics, path.id));
+    }
+
+    await db.transaction('rw', db.analyticsSnapshots, async () => {
+      for (const snap of snapshots) {
+        const existing = await db.analyticsSnapshots
+          .where('[date+learningPathId]')
+          .equals([snap.date, snap.learningPathId])
+          .first();
+        if (existing) {
+          await db.analyticsSnapshots.update(existing.id!, snap);
+        } else {
+          await db.analyticsSnapshots.add(snap);
+        }
+      }
+    });
+  } catch (err) {
+    console.error('Error taking daily snapshot:', err);
+  }
+}
+

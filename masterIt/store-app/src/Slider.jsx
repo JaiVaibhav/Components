@@ -248,11 +248,6 @@ const [index,setIndex] = react.useState(0);
 
 useEffect(()=>{
     const interval = setInterval(()=>{
-        // if(index<ProductsDetails.length-1){
-        //     setIndex((prevIndex) => prevIndex + 1);
-        // }else{
-        //     setIndex(0);
-        // }
        setIndex(prev =>
             prev === ProductsDetails.length - 1
                 ? 0

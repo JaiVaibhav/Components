@@ -83,6 +83,32 @@ export interface Backup {
   recentTopics: RecentTopic[];
   settings: Settings[];
 }
+export interface AnalyticsSnapshot {
+  id?: number;
+  date: string;
+  learningPathId: string;
+  overallProgress: number;
+  totalTopics: number;
+  notStarted: number;
+  learning: number;
+  practiced: number;
+  revised: number;
+  interviewReady: number;
+  topicsInProgress: number;
+  topicsNeedingRevision: number;
+  learningPathsCount: number;
+}
+export interface LearningActivity {
+  id?: number;
+  date: string;
+  topicsUpdated: number;
+  topicsPracticed: number;
+  topicsRevised: number;
+  topicsCompleted: number;
+  notesUpdated: number;
+  snippetsUpdated: number;
+}
 export const uid = () => crypto.randomUUID();
 export const statusLabel = (status: TopicStatus) =>
   status.replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
+

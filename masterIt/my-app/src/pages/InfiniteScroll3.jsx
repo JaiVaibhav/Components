@@ -49,7 +49,6 @@ export default function InfiniteScroll(){
 
     useEffect(()=>{
         const section = sectionRef.current;
-        console.log(section);
         if(!section){
             return
         }

@@ -8,6 +8,7 @@ import Explorer from '../features/explorer/Explorer';
 import TopicDetail from '../features/topics/TopicDetail';
 import Settings from '../features/settings/Settings';
 import SearchPage from '../features/search/SearchPage';
+import Analytics from '../features/analytics/Analytics';
 const Loading = () => <div className="page-loading">Loading workspace…</div>;
 export default function App() {
   const settings = useLiveQuery(() => db.settings.get('user'));
@@ -24,6 +25,7 @@ export default function App() {
           <Route path="/topics/:topicId" element={<TopicDetail />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/analytics" element={<Analytics />} />
         </Route>
       </Routes>
     </Suspense>

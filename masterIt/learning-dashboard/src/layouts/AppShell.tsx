@@ -9,6 +9,7 @@ import {
   Settings,
   Sun,
   Waypoints,
+  ChartNoAxesCombined,
 } from 'lucide-react';
 import { Link, NavLink, Outlet } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
@@ -45,6 +46,10 @@ export default function AppShell() {
           <NavLink to="/explorer">
             <Waypoints size={18} />
             {!collapsed && 'Learning paths'}
+          </NavLink>
+          <NavLink to="/analytics">
+            <ChartNoAxesCombined size={18} />
+            {!collapsed && 'Analytics'}
           </NavLink>
           <NavLink to="/settings">
             <Settings size={18} />
